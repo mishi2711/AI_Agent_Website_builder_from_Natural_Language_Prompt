@@ -1,0 +1,59 @@
+import axios from 'axios';
+
+const API_BASE = 'http://localhost:5000';
+export const SERVER_URL = API_BASE;
+
+const api = axios.create({
+    baseURL: API_BASE,
+    headers: { 'Content-Type': 'application/json' },
+});
+
+// ─── Projects ────────────────────────────────────────
+
+export const createProject = (name, framework = 'react') =>
+    api.post('/projects/create', { name, framework });
+
+export const getProjects = () =>
+    api.get('/projects');
+
+export const getProject = (id) =>
+    api.get(`/projects/${id}`);
+
+// ─── Git ─────────────────────────────────────────────
+
+export const getCommits = (projectId) =>
+    api.get(`/projects/${projectId}/commits`);
+
+export const revertToCommit = (projectId, commitHash) =>
+    api.post('/projects/revert', { projectId, commitHash });
+
+// ─── Files ───────────────────────────────────────────
+
+export const getFiles = (projectId) =>
+    api.get(`/projects/${projectId}/files`);
+
+export const getFileContent = (projectId, filePath) =>
+    api.get(`/projects/${projectId}/files/${filePath}`);
+
+// ─── Messages ────────────────────────────────────────
+
+export const getMessages = (projectId) =>
+    api.get(`/projects/${projectId}/messages`);
+
+// ─── AI ──────────────────────────────────────────────
+
+export const sendPrompt = (projectId, prompt) =>
+    api.post('/ai/prompt', { projectId, prompt });
+
+// ─── Dev Server ──────────────────────────────────────
+
+export const startDevServer = (projectId) =>
+    api.post(`/projects/${projectId}/start`);
+
+export const stopDevServer = (projectId) =>
+    api.post(`/projects/${projectId}/stop`);
+
+export const getServerStatus = (projectId) =>
+    api.get(`/projects/${projectId}/server-status`);
+
+export default api;
