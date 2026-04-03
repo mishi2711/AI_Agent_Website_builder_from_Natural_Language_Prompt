@@ -35,6 +35,9 @@ export const getFiles = (projectId) =>
 export const getFileContent = (projectId, filePath) =>
     api.get(`/projects/${projectId}/files/${filePath}`);
 
+export const updateFileContent = (projectId, filePath, content) =>
+    api.put(`/projects/${projectId}/files/${filePath}`, { content });
+
 // ─── Messages ────────────────────────────────────────
 
 export const getMessages = (projectId) =>

@@ -1,12 +1,13 @@
-import { ChatGroq } from '@langchain/groq';
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { emitLog } from '../utils/logger.js';
 
 let model = null;
 const getModel = () => {
     if (!model) {
-        model = new ChatGroq({
-            model: 'llama-3.3-70b-versatile',
+        model = new ChatGoogleGenerativeAI({
+            model: 'gemini-2.5-flash',
             temperature: 0.3,
+            apiKey: process.env.GEMINI_API_KEY
         });
     }
     return model;

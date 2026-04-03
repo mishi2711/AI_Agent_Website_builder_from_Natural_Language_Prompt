@@ -9,6 +9,8 @@ import {
     revertToCommit,
     startDevServer,
     getServerStatus,
+    getFileContent,
+    updateFileContent,
 } from '../api/api';
 import FileTree from '../components/FileTree';
 import PromptPanel from '../components/PromptPanel';
@@ -26,7 +28,11 @@ function Workspace() {
     const [isReverting, setIsReverting] = useState(false);
     const [previewPort, setPreviewPort] = useState(null);
     const [serverLoading, setServerLoading] = useState(false);
-    const [rightTab, setRightTab] = useState('prompt'); // 'prompt' | 'history'
+    const [savingFile, setSavingFile] = useState(false);
+    const [rightTab, setRightTab] = useState('prompt'); // 'prompt' | 'history' | 'logs'
+    const [openTabs, setOpenTabs] = useState(['Preview']); // array of string paths/ids
+    const [activeTab, setActiveTab] = useState('Preview');
+    const [fileContents, setFileContents] = useState({}); // path -> content string
 
     // ── Data Fetching ──────────────────────────────
     const fetchProjectData = useCallback(async () => {
@@ -144,6 +150,52 @@ function Workspace() {
         );
     }
 
+    const handleFileClick = async (filePath) => {
+        if (!openTabs.includes(filePath)) {
+            setOpenTabs([...openTabs, filePath]);
+        }
+        setActiveTab(filePath);
+
+        // Fetch content if not already fetched
+        if (!fileContents[filePath]) {
+            try {
+                // Remove leading slash if any
+                const pathParam = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+                const { data } = await getFileContent(projectId, pathParam);
+                setFileContents((prev) => ({ ...prev, [filePath]: data.content }));
+            } catch (err) {
+                console.error('Failed to get file content:', err);
+                setFileContents((prev) => ({ ...prev, [filePath]: '// Error loading file content' }));
+            }
+        }
+    };
+
+    const closeTab = (e, tab) => {
+        e.stopPropagation();
+        const newTabs = openTabs.filter((t) => t !== tab);
+        setOpenTabs(newTabs);
+        if (activeTab === tab) {
+            setActiveTab(newTabs.length > 0 ? newTabs[newTabs.length - 1] : '');
+        }
+    };
+
+    const handleSaveFile = async (filePath) => {
+        setSavingFile(true);
+        try {
+            const pathParam = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+            await updateFileContent(projectId, pathParam, fileContents[filePath]);
+            
+            // Re-fetch files to ensure the file tree is up to date
+            const { data } = await getFiles(projectId);
+            setFiles(data);
+        } catch (err) {
+            console.error('Failed to save file:', err);
+            alert('Failed to save file');
+        } finally {
+            setSavingFile(false);
+        }
+    };
+
     return (
         <div className="workspace" id="workspace-page">
             {/* ── Left Panel: File Tree ────────────────── */}
@@ -152,65 +204,130 @@ function Workspace() {
                     <h3>Files</h3>
                 </div>
                 <div className="panel-body">
-                    <FileTree files={files} />
+                    <FileTree files={files} onFileClick={handleFileClick} />
                 </div>
             </div>
 
-            {/* ── Center: Preview ──────────────────────── */}
+            {/* ── Center: Preview/Code ──────────────────────── */}
             <div className="preview-panel" id="preview-panel">
-                <div className="preview-toolbar">
-                    <div className="url-bar">
-                        <span>🌐</span>
-                        <span>
-                            {previewPort
-                                ? `http://localhost:${previewPort}`
-                                : 'Preview not running'}
-                        </span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        {previewPort ? (
-                            <span className="status-badge running">
-                                <span className="status-dot" />
-                                Port {previewPort}
-                            </span>
-                        ) : (
-                            <button
-                                className="btn btn-primary btn-sm"
-                                id="start-server-btn"
-                                onClick={handleStartServer}
-                                disabled={serverLoading}
-                            >
-                                {serverLoading ? (
-                                    <>
-                                        <span className="loading-spinner" /> Starting...
-                                    </>
-                                ) : (
-                                    '▶ Start Preview'
-                                )}
-                            </button>
-                        )}
-                    </div>
+                <div className="file-tabs" style={{ display: 'flex', background: '#1e1e24', borderBottom: '1px solid #333' }}>
+                    {openTabs.map((tab) => (
+                        <div 
+                            key={tab} 
+                            style={{
+                                padding: '10px 15px', 
+                                borderRight: '1px solid #333', 
+                                background: activeTab === tab ? '#282a36' : 'transparent',
+                                color: activeTab === tab ? '#fff' : '#888',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}
+                            onClick={() => setActiveTab(tab)}
+                        >
+                            {tab === 'Preview' ? '🌐 Preview' : tab.split('/').pop()}
+                            {tab !== 'Preview' && (
+                                <span 
+                                    onClick={(e) => closeTab(e, tab)}
+                                    style={{ marginLeft: '10px', fontSize: '12px', opacity: 0.7 }}
+                                >
+                                    ✖
+                                </span>
+                            )}
+                        </div>
+                    ))}
                 </div>
 
-                {previewPort ? (
-                    <iframe
-                        className="preview-frame"
-                        id="preview-iframe"
-                        src={`http://localhost:${previewPort}`}
-                        title="Project Preview"
-                    />
+                {activeTab === 'Preview' ? (
+                    <>
+                        <div className="preview-toolbar">
+                            <div className="url-bar">
+                                <span>🌐</span>
+                                <span>
+                                    {previewPort
+                                        ? `http://localhost:${previewPort}`
+                                        : 'Preview not running'}
+                                </span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                {previewPort ? (
+                                    <span className="status-badge running">
+                                        <span className="status-dot" />
+                                        Port {previewPort}
+                                    </span>
+                                ) : (
+                                    <button
+                                        className="btn btn-primary btn-sm"
+                                        id="start-server-btn"
+                                        onClick={handleStartServer}
+                                        disabled={serverLoading}
+                                    >
+                                        {serverLoading ? (
+                                            <>
+                                                <span className="loading-spinner" /> Starting...
+                                            </>
+                                        ) : (
+                                            '▶ Start Preview'
+                                        )}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {previewPort ? (
+                            <iframe
+                                className="preview-frame"
+                                id="preview-iframe"
+                                src={`http://localhost:${previewPort}`}
+                                title="Project Preview"
+                            />
+                        ) : (
+                            <div className="preview-placeholder">
+                                <div className="placeholder-icon">🖥️</div>
+                                <p>Start the dev server to see your preview</p>
+                                {!serverLoading && (
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={handleStartServer}
+                                    >
+                                        Start Dev Server
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </>
+                ) : activeTab ? (
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#282a36' }}>
+                        <div style={{ padding: '10px', display: 'flex', justifyContent: 'flex-end', borderBottom: '1px solid #333' }}>
+                            <button 
+                                className="btn btn-primary btn-sm"
+                                onClick={() => handleSaveFile(activeTab)}
+                                disabled={savingFile}
+                            >
+                                {savingFile ? 'Saving...' : '💾 Save File'}
+                            </button>
+                        </div>
+                        <textarea
+                            style={{ 
+                                flex: 1, 
+                                backgroundColor: 'transparent', 
+                                color: '#f8f8f2', 
+                                padding: '20px', 
+                                fontFamily: 'monospace', 
+                                whiteSpace: 'pre-wrap',
+                                border: 'none',
+                                outline: 'none',
+                                resize: 'none'
+                            }}
+                            value={fileContents[activeTab] || ''}
+                            onChange={(e) => setFileContents({ ...fileContents, [activeTab]: e.target.value })}
+                            spellCheck="false"
+                        />
+                    </div>
                 ) : (
                     <div className="preview-placeholder">
-                        <div className="placeholder-icon">🖥️</div>
-                        <p>Start the dev server to see your preview</p>
-                        {!serverLoading && (
-                            <button
-                                className="btn btn-secondary"
-                                onClick={handleStartServer}
-                            >
-                                Start Dev Server
-                            </button>
-                        )}
+                        <p>No file open</p>
                     </div>
                 )}
             </div>

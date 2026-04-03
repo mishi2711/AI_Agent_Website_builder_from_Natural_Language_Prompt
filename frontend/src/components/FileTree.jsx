@@ -1,4 +1,4 @@
-function FileTree({ files }) {
+function FileTree({ files, onFileClick }) {
     if (!files || files.length === 0) {
         return (
             <div className="loading-overlay">
@@ -32,8 +32,9 @@ function FileTree({ files }) {
                 <div
                     key={index}
                     className={`file-tree-item ${item.type}`}
-                    style={getIndent(item.path)}
+                    style={{ ...getIndent(item.path), cursor: item.type === 'file' ? 'pointer' : 'default' }}
                     title={item.path}
+                    onClick={() => item.type === 'file' && onFileClick && onFileClick(item.path)}
                 >
                     <span className="file-icon">{getIcon(item)}</span>
                     <span>{item.name}</span>

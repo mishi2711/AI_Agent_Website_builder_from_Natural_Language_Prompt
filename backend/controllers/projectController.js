@@ -1,11 +1,11 @@
 import { getProject, getAllProjects, createProject } from '../services/projectService.js';
 import { getCommits, revertToCommit } from '../services/gitService.js';
 import mongoose from 'mongoose';
-import { listFiles, readFileContent } from '../utils/fileUtils.js';
+import { listFiles, readFileContent, writeFiles } from '../utils/fileUtils.js';
 import { startDevServer, stopDevServer, getDevServerStatus } from '../services/devServerService.js';
 import Commit from '../models/Commit.js';
 import Message from '../models/Message.js';
-import { logEmitter } from '../utils/logger.js';
+import { logEmitter, getLogBuffer } from '../utils/logger.js';
 
 /**
  * POST /projects/create
@@ -112,6 +112,22 @@ export const handleGetFileContent = async (req, res, next) => {
 };
 
 /**
+ * PUT /projects/:id/files/*
+ */
+export const handleUpdateFileContent = async (req, res, next) => {
+    try {
+        const project = await getProject(req.params.id);
+        const filePath = req.params[0]; // wildcard param
+        const { content } = req.body;
+        
+        await writeFiles(project.repoPath, [{ path: filePath, content }]);
+        res.json({ success: true, path: filePath });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
  * POST /projects/revert
  */
 export const handleRevert = async (req, res, next) => {
@@ -201,6 +217,12 @@ export const handleGetLogs = (req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders(); // Establish connection immediately
+
+    // Send buffered logs immediately
+    const pastLogs = getLogBuffer(projectId);
+    for (const log of pastLogs) {
+        res.write(`data: ${JSON.stringify(log)}\n\n`);
+    }
 
     const listener = (log) => {
         if (log.projectId === projectId || log.projectId === 'system') {

@@ -12,6 +12,7 @@ import {
     handleStopDevServer,
     handleServerStatus,
     handleGetLogs,
+    handleUpdateFileContent,
 } from '../controllers/projectController.js';
 
 const router = Router();
@@ -28,6 +29,7 @@ router.post('/revert', handleRevert);
 // File operations
 router.get('/:id/files', handleGetFiles);
 router.get('/:id/files/*', handleGetFileContent);
+router.put('/:id/files/*', handleUpdateFileContent);
 
 // Conversations
 router.get('/:id/messages', handleGetMessages);
