@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createProject } from '../api/api';
 
@@ -7,6 +7,7 @@ function Home() {
     const [showModal, setShowModal] = useState(false);
     const [projectName, setProjectName] = useState('');
     const [isCreating, setIsCreating] = useState(false);
+    const brandRef = useRef(null);
 
     const handleCreate = async () => {
         if (!projectName.trim()) return;
@@ -21,60 +22,174 @@ function Home() {
         }
     };
 
+    useEffect(() => {
+        const observerOptions = { threshold: 0.1 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        const handleScroll = () => {
+            const scrolled = window.pageYOffset;
+            if (brandRef.current && brandRef.current.offsetParent) {
+                const rect = brandRef.current.getBoundingClientRect();
+                const viewHeight = window.innerHeight;
+                if (rect.top < viewHeight && rect.bottom > 0) {
+                    const val = (scrolled - (brandRef.current.offsetTop + brandRef.current.offsetParent.offsetTop)) * 0.1;
+                    brandRef.current.style.transform = `translateY(${val}px)`;
+                }
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            observer.disconnect();
+        };
+    }, []);
+
     return (
-        <div className="home" id="home-page">
-            <div className="home-badge">
-                <span>✨</span>
-                <span>AI-Powered Website Builder</span>
-            </div>
-
-            <h1>
-                Build Websites with
-                <br />
-                <span className="gradient-text">AI Agents</span>
-            </h1>
-
-            <p>
-                Create, modify, and version-control your websites using natural language prompts.
-                Powered by LangGraph agents with automatic Git versioning.
-            </p>
-
-            <div className="home-actions">
-                <button
-                    className="btn btn-primary btn-lg"
-                    id="create-project-btn"
-                    onClick={() => setShowModal(true)}
-                >
-                    ⚡ Create Project
-                </button>
-                <button
-                    className="btn btn-secondary btn-lg"
-                    onClick={() => navigate('/dashboard')}
-                >
-                    View Projects
-                </button>
-            </div>
-
-            <div className="home-features">
-                <div className="card feature-card">
-                    <div className="feature-icon">🤖</div>
-                    <h3>AI Agents</h3>
-                    <p>LangGraph planner and coder agents generate and modify your website code.</p>
+        <div className="home-container overflow-hidden pt-16">
+            {/* 1. Hero Section */}
+            <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-surface transition-colors duration-500">
+                <video autoPlay className="absolute w-full h-full object-cover opacity-20 scale-110 blur-[1px]" loop muted playsInline>
+                    <source src="https://storage.googleapis.com/uxpilot-auth.appspot.com/62c0e8623e-63806f4c78572ce34661.mp4" type="video/mp4"/>
+                </video>
+                <div className="relative z-10 text-center px-6 reveal active">
+                    <p className="text-primary uppercase tracking-[0.8em] font-label text-[10px] mb-12 heading-glow">Digital Auteur Experience</p>
+                    <h1 className="font-headline font-black tracking-tighter text-on-background leading-[0.85] max-w-[90vw] mx-auto italic hero-title">
+                        CRAFTING <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-primary to-secondary">REALITIES</span>
+                    </h1>
                 </div>
-                <div className="card feature-card">
-                    <div className="feature-icon">🔄</div>
-                    <h3>Git Versioning</h3>
-                    <p>Every AI change creates a Git commit. Revert to any previous version instantly.</p>
+                <div className="absolute bottom-16 left-1/2 -translate-x-1/2 animate-bounce opacity-20">
+                    <span className="material-symbols-outlined text-3xl">keyboard_double_arrow_down</span>
                 </div>
-                <div className="card feature-card">
-                    <div className="feature-icon">💬</div>
-                    <h3>Conversation History</h3>
-                    <p>All prompts and AI responses are stored in MongoDB for full traceability.</p>
-                </div>
-            </div>
+            </section>
 
+            {/* 2. Brand Parallax Section */}
+            <section className="py-64 md:py-96 relative overflow-hidden bg-surface transition-colors duration-500">
+                <div className="container mx-auto px-6 text-center reveal">
+                    <div className="relative inline-block group">
+                        <div className="absolute -inset-40 bg-primary/10 blur-[120px] rounded-full group-hover:bg-primary/20 transition-all duration-700"></div>
+                        <h2 ref={brandRef} className="massive-type font-headline font-black cursor-default transition-all duration-1000 select-none tracking-[-0.08em] hover:tracking-[-0.05em] parallax-text vibrant-glow-blue">
+                            NIRMANA
+                        </h2>
+                    </div>
+                </div>
+            </section>
+
+            {/* 3. Capabilities Section */}
+            <section className="py-32 relative bg-surface transition-colors duration-500">
+                <div className="container mx-auto px-8 relative z-10">
+                    <div className="mb-24 reveal text-center md:text-left">
+                        <span className="text-primary font-label text-[10px] tracking-[0.5em] uppercase mb-4 block heading-glow">Core Architecture</span>
+                        <h3 className="font-headline text-6xl md:text-8xl font-black tracking-tighter fix-clipping">THE ECOSYSTEM</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        {[
+                            { icon: 'neurology', title: 'Prompt-Based', color: 'glow-blue', textColor: 'text-primary' },
+                            { icon: 'terminal', title: 'Developer Control', color: 'glow-purple', textColor: 'text-secondary' },
+                            { icon: 'bolt', title: 'Instant Preview', color: 'glow-gold', textColor: 'text-tertiary' },
+                            { icon: 'history', title: 'Smart Versioning', color: 'glow-blue', textColor: 'text-primary' },
+                            { icon: 'forum', title: 'Persistent Chat', color: 'glow-purple', textColor: 'text-secondary' },
+                            { icon: 'bug_report', title: 'Debug Console', color: 'glow-gold', textColor: 'text-tertiary' },
+                            { icon: 'smart_toy', title: 'Multi-Agent AI', color: 'glow-blue', textColor: 'text-primary' },
+                            { icon: 'package_2', title: 'Full Code Access', color: 'glow-purple', textColor: 'text-secondary' },
+                            { icon: 'palette', title: 'Smart UI', color: 'glow-gold', textColor: 'text-tertiary' },
+                            { icon: 'rocket_launch', title: 'One-Click Deploy', color: 'glow-blue', textColor: 'text-primary' }
+                        ].map((item, idx) => (
+                            <div key={idx} className={`glass-card p-10 group ${item.color}`}>
+                                <span className={`material-symbols-outlined text-4xl ${item.textColor} mb-8 group-hover:scale-110 transition-transform`}>{item.icon}</span>
+                                <h4 className="font-headline text-lg font-bold mb-3 tracking-tight">{item.title}</h4>
+                                <p className="text-on-surface/40 text-[11px] leading-relaxed">Built continuously with your guidance to exceed constraints.</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* 4. Carousel Section */}
+            <section className="py-48 bg-surface overflow-hidden transition-colors duration-500">
+                <div className="container mx-auto px-8 mb-24 reveal">
+                    <h3 className="font-headline text-6xl md:text-[10vw] font-black text-right tracking-tighter uppercase vibrant-glow-blue fix-clipping">Excellence</h3>
+                </div>
+                <div className="flex gap-8 overflow-x-auto px-12 pb-24 hide-scrollbar snap-x snap-mandatory">
+                    <div className="min-w-[350px] md:min-w-[900px] h-[600px] relative group overflow-hidden snap-center flex-shrink-0">
+                        <img alt="Tech Canvas" className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAG8mkgfF89F2aqgbsAA52r1IAePJiuujtFWWvDhpSWP79szYOJHrUF3UHcLDkzR0Ci4C756Pb0E4pfqNtVJp7_XnN4CY64PMwW09pupdS-uxaiteTrE-h2QUbIZns-ojsUcr9Q5UjGgbojFRcxtD55gBAp-F_hfb3ZcNNArDK11Ufvg_oOQgvoBORv5OLS6b2q4g1uhPNAyp5FtaDqoRnRwXT0T-B9EeU_rJG439ojLDKG6Za6Zfd0AbtpaPhPk368UYCLfVNOBWY"/>
+                        <div className="absolute inset-0 cinematic-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-12">
+                            <span className="text-primary font-bold tracking-widest text-[10px] mb-2 uppercase">Visionary Interface</span>
+                            <h4 className="text-4xl font-black text-white tracking-tighter fix-clipping">DATA SYNTHESIS</h4>
+                        </div>
+                    </div>
+                    <div className="min-w-[350px] md:min-w-[900px] h-[600px] relative group overflow-hidden snap-center flex-shrink-0">
+                        <img alt="Portrait" className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiIkpO0P3TrSOXGLP8HAUBPomk8G4gWAAtapXGo9TgrUYkXOAGPahuaQ7OtAFUaIIgXlS9ktolkdm58sI_tdDMQL-eGHVBMz6XiZGWQAFs4KfOcXr7MgP9lu9sl_0IMbAE2ZXCJjcQsTsWQq3Tv0xGygKu5rNBOpm7K0BnhhgjahUBW0vd9XBJ08lZ033DtKPpM0riSChgwGVfs-hDfgc0S0ItrUebPPGalO2l2liUo2d4EW5-PYkVTNqpW2Ye6MkC0BQ2imeUDbQ"/>
+                        <div className="absolute inset-0 cinematic-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-12">
+                            <span className="text-secondary font-bold tracking-widest text-[10px] mb-2 uppercase">Human Centric</span>
+                            <h4 className="text-4xl font-black text-white tracking-tighter fix-clipping">EMOTIVE DESIGN</h4>
+                        </div>
+                    </div>
+                    <div className="min-w-[350px] md:min-w-[900px] h-[600px] relative group overflow-hidden snap-center flex-shrink-0">
+                        <img alt="AI Hub" className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaF_IS6_37n9TFg8Djhllxauf5BaOb5dEGKia84Uue33i6E8xIfIVzBQMWMrL6LQxEqkm5KSXFTisP0SsGZzXoFOiTJ3TpywNCk_HC5ieSP5PVYJMPD7Xrj-MHVtOIHjlkutHbWi6VsdBzffbtYEoeSwFylahRCSYVUDmi_Dlih1h6SiWDnVCiS59ghAe7Z2xyDJSGQahvae4cqiH93iNUMHcMn9c_TeFKklsCxkfPKa0ACwDTJ_wW3e56OklZ2p3ljff_CVonTbg"/>
+                        <div className="absolute inset-0 cinematic-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-12">
+                            <span className="text-tertiary font-bold tracking-widest text-[10px] mb-2 uppercase">Neural Core</span>
+                            <h4 className="text-4xl font-black text-white tracking-tighter fix-clipping">AGENCY EVOLVED</h4>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* 5. Forge Process */}
+            <section className="py-48 bg-surface transition-colors duration-500">
+                <div className="container mx-auto px-8">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-48">
+                        <div className="reveal border-l border-white/10 pl-8 group">
+                            <span className="text-7xl font-black mb-6 block vibrant-glow-blue">01</span>
+                            <h4 className="text-2xl font-black mb-4 uppercase italic">Input</h4>
+                            <p className="text-white/40 text-xs leading-relaxed uppercase tracking-tighter">Seed your intent. Natural language requirements translated to blueprints.</p>
+                        </div>
+                        <div className="reveal border-l border-white/10 pl-8 group" style={{transitionDelay: "100ms"}}>
+                            <span className="text-7xl font-black mb-6 block vibrant-glow-blue">02</span>
+                            <h4 className="text-2xl font-black mb-4 uppercase italic">Swarm</h4>
+                            <p className="text-white/40 text-xs leading-relaxed uppercase tracking-tighter">Multi-agent nodes deliberate and co-author rapidly.</p>
+                        </div>
+                        <div className="reveal border-l border-white/10 pl-8 group" style={{transitionDelay: "200ms"}}>
+                            <span className="text-7xl font-black mb-6 block vibrant-glow-blue">03</span>
+                            <h4 className="text-2xl font-black mb-4 uppercase italic">Forge</h4>
+                            <p className="text-white/40 text-xs leading-relaxed uppercase tracking-tighter">The system compiles design systems from logic.</p>
+                        </div>
+                        <div className="reveal border-l border-white/10 pl-8 group" style={{transitionDelay: "300ms"}}>
+                            <span className="text-7xl font-black mb-6 block vibrant-glow-blue">04</span>
+                            <h4 className="text-2xl font-black mb-4 uppercase italic">Manifest</h4>
+                            <p className="text-white/40 text-xs leading-relaxed uppercase tracking-tighter">Deploy to the edge. A living web element ready for the world.</p>
+                        </div>
+                    </div>
+
+                    <div className="reveal text-center relative py-32">
+                        <div className="absolute inset-0 flex items-center justify-center opacity-30">
+                            <div className="w-[600px] h-[600px] bg-primary/20 blur-[150px] animate-pulse"></div>
+                        </div>
+                        <h2 className="font-headline text-5xl md:text-8xl font-black tracking-tighter mb-16 relative z-10 fix-clipping">MANIFEST YOUR REALITY.</h2>
+                        <div className="relative z-10 flex flex-col items-center">
+                            <button 
+                                className="bg-primary hover:bg-white text-black px-16 py-8 rounded-full font-black text-2xl uppercase tracking-tighter transition-all duration-700 shadow-[0_0_80px_rgba(173,198,255,0.4)] hover:shadow-[0_0_120px_rgba(255,255,255,0.6)] hover:scale-105 active:scale-95"
+                                onClick={() => setShowModal(true)}
+                            >
+                                Start Building Now
+                            </button>
+                            <p className="mt-8 text-white/20 uppercase tracking-[0.5em] text-[9px] font-bold">Limited Studio Access Available</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Create Project Modal */}
             {showModal && (
-                <div className="modal-overlay" onClick={() => setShowModal(false)}>
+                <div className="modal-overlay z-[100]" onClick={() => setShowModal(false)}>
                     <div className="modal" onClick={(e) => e.stopPropagation()}>
                         <h2>Create New Project</h2>
                         <p>Give your project a name to get started.</p>
