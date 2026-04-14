@@ -1102,4 +1102,59 @@ a:hover {
 .light .heading-glow:hover {
     text-shadow: 0 0 15px rgba(0, 86, 179, 0.5);
     color: #0056b3 !important;
-}
+}
+
+/* ══════════════════════════════════════════════════
+   LOGIN PAGE SPECIFIC STYLES
+   ══════════════════════════════════════════════════ */
+.atmospheric-glow {
+    background: radial-gradient(circle at 50% 50%, rgba(173, 198, 255, 0.08) 0%, rgba(19, 19, 19, 0) 70%);
+}
+.jewel-button {
+    background: linear-gradient(135deg, #adc6ff 0%, #4b8eff 100%);
+    transition: all 0.3s ease;
+}
+.jewel-button:hover {
+    box-shadow: 0 0 25px rgba(173, 198, 255, 0.4);
+    transform: translateY(-1px);
+}
+.input-glow:focus-within {
+    border-bottom: 2px solid #adc6ff;
+    box-shadow: 0 4px 12px -4px rgba(173, 198, 255, 0.2);
+}
+
+/* Light Mode Overrides Scoped to Login Page */
+.light .login-page-wrapper {
+    background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 50%, #dbeafe 100%);
+    color: #0f172a;
+}
+.light .login-page-wrapper .glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 15px 20px -5px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(20px);
+}
+.light .login-page-wrapper .atmospheric-glow {
+    opacity: 0.6;
+    background: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.05) 0%, transparent 70%);
+}
+.light .login-page-wrapper .text-on-surface { color: #020617 !important; }
+.light .login-page-wrapper .text-on-surface-variant { color: #334155 !important; }
+.light .login-page-wrapper .text-on-surface-variant\/80 { color: #475569 !important; }
+.light .login-page-wrapper .text-gray-600 { color: #334155 !important; }
+.light .login-page-wrapper .text-gray-500 { color: #475569 !important; }
+.light .login-page-wrapper .text-primary\/60 { color: #1d4ed8 !important; }
+.light .login-page-wrapper .text-primary\/70 { color: #1d4ed8 !important; }
+.light .login-page-wrapper .border-white\/10 { border-color: #94a3b8 !important; }
+.light .login-page-wrapper .border-white\/5 { border-color: #cbd5e1 !important; }
+.light .login-page-wrapper .bg-white\/5 { background-color: #e2e8f0 !important; }
+.light .login-page-wrapper .bg-white\/10 { background-color: #cbd5e1 !important; }
+
+/* Maintain brand blue button in light mode */
+.light .login-page-wrapper .jewel-button {
+    background: linear-gradient(135deg, #adc6ff 0%, #4b8eff 100%);
+    color: #ffffff !important;
+}
+.light .login-page-wrapper .placeholder\:text-gray-600::placeholder { color: #64748b !important; }
+.light .login-page-wrapper .text-primary { color: #2563eb !important; }
+.light .login-page-wrapper .decoration-primary\/20 { text-decoration-color: rgba(37, 99, 235, 0.6) !important; }
