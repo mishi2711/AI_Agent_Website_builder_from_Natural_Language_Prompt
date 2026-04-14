@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 function Login() {
     const [showPassword, setShowPassword] = useState(false);
 
     return (
-        <div className="login-page-wrapper flex-grow flex items-center justify-center relative px-4 py-24 md:py-32 w-full min-h-[calc(100vh-280px)]">
+        <div className="auth-page-wrapper flex-grow flex items-center justify-center relative px-4 py-24 md:py-32 w-full min-h-[calc(100vh-280px)]">
             {/* Background Atmospheric Elements */}
             <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] atmospheric-glow rounded-full blur-[100px] pointer-events-none"></div>
             <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] atmospheric-glow rounded-full blur-[100px] pointer-events-none" style={{ background: "radial-gradient(circle, rgba(233, 179, 255, 0.05) 0%, transparent 70%)" }}></div>
@@ -89,7 +90,7 @@ function Login() {
                 <div className="mt-8 text-center pt-8 pb-4">
                     <p className="text-on-surface-variant text-xs font-body">
                         Don't have an account? 
-                        <a className="text-primary hover:text-secondary font-bold ml-1 transition-colors underline decoration-primary/20 underline-offset-4" href="#">Sign Up</a>
+                        <Link className="text-primary hover:text-secondary font-bold ml-1 transition-colors underline decoration-primary/20 underline-offset-4" to="/signup">Sign Up</Link>
                     </p>
                 </div>
             </div>

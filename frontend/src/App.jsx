@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Workspace from './pages/Workspace';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
@@ -17,6 +18,7 @@ function App() {
                         <Route path="/dashboard" element={<Dashboard />} />
                         <Route path="/workspace/:projectId" element={<Workspace />} />
                         <Route path="/login" element={<Login />} />
+                        <Route path="/signup" element={<Signup />} />
                     </Routes>
                 </main>
                 <Footer />
