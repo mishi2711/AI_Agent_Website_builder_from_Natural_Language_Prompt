@@ -8,6 +8,7 @@ function Home() {
     const [projectName, setProjectName] = useState('');
     const [isCreating, setIsCreating] = useState(false);
     const brandRef = useRef(null);
+    const carouselRef = useRef(null);
 
     const handleCreate = async () => {
         if (!projectName.trim()) return;
@@ -47,9 +48,25 @@ function Home() {
         };
 
         window.addEventListener('scroll', handleScroll);
+
+        const autoScrollInterval = setInterval(() => {
+            const carousel = carouselRef.current;
+            if (carousel) {
+                const isAtEnd = carousel.scrollLeft >= (carousel.scrollWidth - carousel.clientWidth - 10);
+                if (isAtEnd) {
+                    carousel.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    const child = carousel.children[0];
+                    const itemWidth = child ? child.offsetWidth : 0;
+                    carousel.scrollBy({ left: itemWidth + 32, behavior: 'smooth' });
+                }
+            }
+        }, 3000);
+
         return () => {
             window.removeEventListener('scroll', handleScroll);
             observer.disconnect();
+            clearInterval(autoScrollInterval);
         };
     }, []);
 
@@ -118,26 +135,26 @@ function Home() {
                 <div className="container mx-auto px-8 mb-24 reveal">
                     <h3 className="font-headline text-6xl md:text-[10vw] font-black text-right tracking-tighter uppercase vibrant-glow-blue fix-clipping">Excellence</h3>
                 </div>
-                <div className="flex gap-8 overflow-x-auto px-12 pb-24 hide-scrollbar snap-x snap-mandatory">
+                <div ref={carouselRef} className="flex gap-8 overflow-x-auto px-12 pb-24 hide-scrollbar snap-x snap-mandatory scroll-smooth">
                     <div className="min-w-[350px] md:min-w-[900px] h-[600px] relative group overflow-hidden snap-center flex-shrink-0">
                         <img alt="Tech Canvas" className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAG8mkgfF89F2aqgbsAA52r1IAePJiuujtFWWvDhpSWP79szYOJHrUF3UHcLDkzR0Ci4C756Pb0E4pfqNtVJp7_XnN4CY64PMwW09pupdS-uxaiteTrE-h2QUbIZns-ojsUcr9Q5UjGgbojFRcxtD55gBAp-F_hfb3ZcNNArDK11Ufvg_oOQgvoBORv5OLS6b2q4g1uhPNAyp5FtaDqoRnRwXT0T-B9EeU_rJG439ojLDKG6Za6Zfd0AbtpaPhPk368UYCLfVNOBWY"/>
-                        <div className="absolute inset-0 cinematic-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-12">
-                            <span className="text-primary font-bold tracking-widest text-[10px] mb-2 uppercase">Visionary Interface</span>
-                            <h4 className="text-4xl font-black text-white tracking-tighter fix-clipping">DATA SYNTHESIS</h4>
+                        <div className="absolute inset-0 cinematic-overlay opacity-100 bg-gradient-to-t from-[#000000cc] via-[#00000066] to-transparent transition-opacity duration-500 flex flex-col justify-end p-12">
+                            <span className="always-white font-bold tracking-widest text-[10px] mb-2 uppercase shadow-black drop-shadow-md" style={{ color: '#ffffff' }}>Visionary Interface</span>
+                            <h4 className="always-white text-4xl font-black tracking-tighter fix-clipping drop-shadow-lg" style={{ color: '#ffffff' }}>DATA SYNTHESIS</h4>
                         </div>
                     </div>
                     <div className="min-w-[350px] md:min-w-[900px] h-[600px] relative group overflow-hidden snap-center flex-shrink-0">
                         <img alt="Portrait" className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiIkpO0P3TrSOXGLP8HAUBPomk8G4gWAAtapXGo9TgrUYkXOAGPahuaQ7OtAFUaIIgXlS9ktolkdm58sI_tdDMQL-eGHVBMz6XiZGWQAFs4KfOcXr7MgP9lu9sl_0IMbAE2ZXCJjcQsTsWQq3Tv0xGygKu5rNBOpm7K0BnhhgjahUBW0vd9XBJ08lZ033DtKPpM0riSChgwGVfs-hDfgc0S0ItrUebPPGalO2l2liUo2d4EW5-PYkVTNqpW2Ye6MkC0BQ2imeUDbQ"/>
-                        <div className="absolute inset-0 cinematic-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-12">
-                            <span className="text-secondary font-bold tracking-widest text-[10px] mb-2 uppercase">Human Centric</span>
-                            <h4 className="text-4xl font-black text-white tracking-tighter fix-clipping">EMOTIVE DESIGN</h4>
+                        <div className="absolute inset-0 cinematic-overlay opacity-100 bg-gradient-to-t from-[#000000cc] via-[#00000066] to-transparent transition-opacity duration-500 flex flex-col justify-end p-12">
+                            <span className="always-white font-bold tracking-widest text-[10px] mb-2 uppercase shadow-black drop-shadow-md" style={{ color: '#ffffff' }}>Human Centric</span>
+                            <h4 className="always-white text-4xl font-black tracking-tighter fix-clipping drop-shadow-lg" style={{ color: '#ffffff' }}>EMOTIVE DESIGN</h4>
                         </div>
                     </div>
                     <div className="min-w-[350px] md:min-w-[900px] h-[600px] relative group overflow-hidden snap-center flex-shrink-0">
                         <img alt="AI Hub" className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaF_IS6_37n9TFg8Djhllxauf5BaOb5dEGKia84Uue33i6E8xIfIVzBQMWMrL6LQxEqkm5KSXFTisP0SsGZzXoFOiTJ3TpywNCk_HC5ieSP5PVYJMPD7Xrj-MHVtOIHjlkutHbWi6VsdBzffbtYEoeSwFylahRCSYVUDmi_Dlih1h6SiWDnVCiS59ghAe7Z2xyDJSGQahvae4cqiH93iNUMHcMn9c_TeFKklsCxkfPKa0ACwDTJ_wW3e56OklZ2p3ljff_CVonTbg"/>
-                        <div className="absolute inset-0 cinematic-overlay opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-12">
-                            <span className="text-tertiary font-bold tracking-widest text-[10px] mb-2 uppercase">Neural Core</span>
-                            <h4 className="text-4xl font-black text-white tracking-tighter fix-clipping">AGENCY EVOLVED</h4>
+                        <div className="absolute inset-0 cinematic-overlay opacity-100 bg-gradient-to-t from-[#000000cc] via-[#00000066] to-transparent transition-opacity duration-500 flex flex-col justify-end p-12">
+                            <span className="always-white font-bold tracking-widest text-[10px] mb-2 uppercase shadow-black drop-shadow-md" style={{ color: '#ffffff' }}>Neural Core</span>
+                            <h4 className="always-white text-4xl font-black tracking-tighter fix-clipping drop-shadow-lg" style={{ color: '#ffffff' }}>AGENCY EVOLVED</h4>
                         </div>
                     </div>
                 </div>

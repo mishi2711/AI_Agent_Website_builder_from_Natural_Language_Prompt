@@ -8,22 +8,16 @@ function Footer() {
                 <div className="col-span-2 md:col-span-1">
                     <div className="flex items-center mb-10">
                         <img 
-                            alt="Nirmana Logo Dark" 
-                            className="h-8 w-auto object-contain mr-4 hidden dark:block" 
-                            id="footer-logo-dark" 
+                            alt="Nirmana Logo" 
+                            className="h-8 w-auto object-contain mr-4" 
+                            id="footer-logo" 
                             src="https://i.postimg.cc/8z7j15Yw/Dark_Logo.png"
                         />
-                        <img 
-                            alt="Nirmana Logo Light" 
-                            className="h-8 w-auto object-contain mr-4 block dark:hidden" 
-                            id="footer-logo-light" 
-                            src="https://i.postimg.cc/T3KpRws9/Light_Logo.png"
-                        />
-                        <span className="text-lg font-bold text-[#e5e2e1] uppercase italic fix-clipping">NIRMANA</span>
+                        <div className="text-lg font-bold text-[#e5e2e1] uppercase italic fix-clipping">NIRMANA</div>
                     </div>
-                    <p className="text-[#e5e2e1]/50 text-xs uppercase tracking-widest leading-loose max-w-sm">
+                    <div className="text-[#e5e2e1]/50 text-xs uppercase tracking-widest leading-loose max-w-sm">
                         Pioneering collective intelligence for cinematic digital experiences. The future is built by agents.
-                    </p>
+                    </div>
                 </div>
                 <div>
                     <h5 className="text-[#adc6ff] font-bold text-[10px] mb-8 uppercase tracking-[0.4em] heading-glow">Platform</h5>
