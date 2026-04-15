@@ -2,6 +2,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createProject } from '../api/api';
 
+const CAROUSEL_ITEMS = [
+    {
+        img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAG8mkgfF89F2aqgbsAA52r1IAePJiuujtFWWvDhpSWP79szYOJHrUF3UHcLDkzR0Ci4C756Pb0E4pfqNtVJp7_XnN4CY64PMwW09pupdS-uxaiteTrE-h2QUbIZns-ojsUcr9Q5UjGgbojFRcxtD55gBAp-F_hfb3ZcNNArDK11Ufvg_oOQgvoBORv5OLS6b2q4g1uhPNAyp5FtaDqoRnRwXT0T-B9EeU_rJG439ojLDKG6Za6Zfd0AbtpaPhPk368UYCLfVNOBWY",
+        tag: "Visionary Interface",
+        title: "DATA SYNTHESIS"
+    },
+    {
+        img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBiIkpO0P3TrSOXGLP8HAUBPomk8G4gWAAtapXGo9TgrUYkXOAGPahuaQ7OtAFUaIIgXlS9ktolkdm58sI_tdDMQL-eGHVBMz6XiZGWQAFs4KfOcXr7MgP9lu9sl_0IMbAE2ZXCJjcQsTsWQq3Tv0xGygKu5rNBOpm7K0BnhhgjahUBW0vd9XBJ08lZ033DtKPpM0riSChgwGVfs-hDfgc0S0ItrUebPPGalO2l2liUo2d4EW5-PYkVTNqpW2Ye6MkC0BQ2imeUDbQ",
+        tag: "Human Centric",
+        title: "EMOTIVE DESIGN"
+    },
+    {
+        img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBaF_IS6_37n9TFg8Djhllxauf5BaOb5dEGKia84Uue33i6E8xIfIVzBQMWMrL6LQxEqkm5KSXFTisP0SsGZzXoFOiTJ3TpywNCk_HC5ieSP5PVYJMPD7Xrj-MHVtOIHjlkutHbWi6VsdBzffbtYEoeSwFylahRCSYVUDmi_Dlih1h6SiWDnVCiS59ghAe7Z2xyDJSGQahvae4cqiH93iNUMHcMn9c_TeFKklsCxkfPKa0ACwDTJ_wW3e56OklZ2p3ljff_CVonTbg",
+        tag: "Neural Core",
+        title: "AGENCY EVOLVED"
+    }
+];
+
 function Home() {
     const navigate = useNavigate();
     const [showModal, setShowModal] = useState(false);
@@ -49,24 +67,39 @@ function Home() {
 
         window.addEventListener('scroll', handleScroll);
 
-        const autoScrollInterval = setInterval(() => {
+        let lastTime = 0;
+        let accumulator = 0;
+        const speed = 0.08; // Change this value to make it slower or faster (pixels per millisecond)
+        let animationFrameId;
+
+        const autoScroll = (timestamp) => {
+            if (!lastTime) lastTime = timestamp;
+            const delta = timestamp - lastTime;
+            lastTime = timestamp;
+
             const carousel = carouselRef.current;
-            if (carousel) {
-                const isAtEnd = carousel.scrollLeft >= (carousel.scrollWidth - carousel.clientWidth - 10);
-                if (isAtEnd) {
-                    carousel.scrollTo({ left: 0, behavior: 'smooth' });
-                } else {
-                    const child = carousel.children[0];
-                    const itemWidth = child ? child.offsetWidth : 0;
-                    carousel.scrollBy({ left: itemWidth + 32, behavior: 'smooth' });
+            if (carousel && carousel.children.length > 0 && !carousel.matches(':hover')) {
+                accumulator += delta * speed;
+                if (accumulator >= 1) {
+                    const pixels = Math.floor(accumulator);
+                    accumulator -= pixels;
+                    
+                    const firstChild = carousel.children[0];
+                    if (carousel.scrollLeft >= firstChild.offsetWidth) {
+                        carousel.scrollLeft -= firstChild.offsetWidth;
+                    } else {
+                        carousel.scrollLeft += pixels;
+                    }
                 }
             }
-        }, 3000);
+            animationFrameId = requestAnimationFrame(autoScroll);
+        };
+        animationFrameId = requestAnimationFrame(autoScroll);
 
         return () => {
             window.removeEventListener('scroll', handleScroll);
             observer.disconnect();
-            clearInterval(autoScrollInterval);
+            cancelAnimationFrame(animationFrameId);
         };
     }, []);
 
@@ -135,27 +168,28 @@ function Home() {
                 <div className="container mx-auto px-8 mb-24 reveal">
                     <h3 className="font-headline text-6xl md:text-[10vw] font-black text-right tracking-tighter uppercase vibrant-glow-blue fix-clipping">Excellence</h3>
                 </div>
-                <div ref={carouselRef} className="flex gap-8 overflow-x-auto px-12 pb-24 hide-scrollbar snap-x snap-mandatory scroll-smooth">
-                    <div className="min-w-[350px] md:min-w-[900px] h-[600px] relative group overflow-hidden snap-center flex-shrink-0">
-                        <img alt="Tech Canvas" className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAG8mkgfF89F2aqgbsAA52r1IAePJiuujtFWWvDhpSWP79szYOJHrUF3UHcLDkzR0Ci4C756Pb0E4pfqNtVJp7_XnN4CY64PMwW09pupdS-uxaiteTrE-h2QUbIZns-ojsUcr9Q5UjGgbojFRcxtD55gBAp-F_hfb3ZcNNArDK11Ufvg_oOQgvoBORv5OLS6b2q4g1uhPNAyp5FtaDqoRnRwXT0T-B9EeU_rJG439ojLDKG6Za6Zfd0AbtpaPhPk368UYCLfVNOBWY"/>
-                        <div className="absolute inset-0 cinematic-overlay opacity-100 bg-gradient-to-t from-[#000000cc] via-[#00000066] to-transparent transition-opacity duration-500 flex flex-col justify-end p-12">
-                            <span className="always-white font-bold tracking-widest text-[10px] mb-2 uppercase shadow-black drop-shadow-md" style={{ color: '#ffffff' }}>Visionary Interface</span>
-                            <h4 className="always-white text-4xl font-black tracking-tighter fix-clipping drop-shadow-lg" style={{ color: '#ffffff' }}>DATA SYNTHESIS</h4>
-                        </div>
+                <div ref={carouselRef} className="flex overflow-x-auto hide-scrollbar pb-24">
+                    <div className="flex gap-8 pr-8 flex-shrink-0">
+                        {CAROUSEL_ITEMS.map((item, idx) => (
+                            <div key={`set1-${idx}`} className="min-w-[350px] md:min-w-[900px] h-[600px] relative group overflow-hidden flex-shrink-0">
+                                <img alt={item.tag} className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" src={item.img} />
+                                <div className="absolute inset-0 cinematic-overlay opacity-100 bg-gradient-to-t from-[#000000cc] via-[#00000066] to-transparent transition-opacity duration-500 flex flex-col justify-end p-12">
+                                    <span className="always-white font-bold tracking-widest text-[10px] mb-2 uppercase shadow-black drop-shadow-md" style={{ color: '#ffffff' }}>{item.tag}</span>
+                                    <h4 className="always-white text-4xl font-black tracking-tighter fix-clipping drop-shadow-lg" style={{ color: '#ffffff' }}>{item.title}</h4>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                    <div className="min-w-[350px] md:min-w-[900px] h-[600px] relative group overflow-hidden snap-center flex-shrink-0">
-                        <img alt="Portrait" className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBiIkpO0P3TrSOXGLP8HAUBPomk8G4gWAAtapXGo9TgrUYkXOAGPahuaQ7OtAFUaIIgXlS9ktolkdm58sI_tdDMQL-eGHVBMz6XiZGWQAFs4KfOcXr7MgP9lu9sl_0IMbAE2ZXCJjcQsTsWQq3Tv0xGygKu5rNBOpm7K0BnhhgjahUBW0vd9XBJ08lZ033DtKPpM0riSChgwGVfs-hDfgc0S0ItrUebPPGalO2l2liUo2d4EW5-PYkVTNqpW2Ye6MkC0BQ2imeUDbQ"/>
-                        <div className="absolute inset-0 cinematic-overlay opacity-100 bg-gradient-to-t from-[#000000cc] via-[#00000066] to-transparent transition-opacity duration-500 flex flex-col justify-end p-12">
-                            <span className="always-white font-bold tracking-widest text-[10px] mb-2 uppercase shadow-black drop-shadow-md" style={{ color: '#ffffff' }}>Human Centric</span>
-                            <h4 className="always-white text-4xl font-black tracking-tighter fix-clipping drop-shadow-lg" style={{ color: '#ffffff' }}>EMOTIVE DESIGN</h4>
-                        </div>
-                    </div>
-                    <div className="min-w-[350px] md:min-w-[900px] h-[600px] relative group overflow-hidden snap-center flex-shrink-0">
-                        <img alt="AI Hub" className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaF_IS6_37n9TFg8Djhllxauf5BaOb5dEGKia84Uue33i6E8xIfIVzBQMWMrL6LQxEqkm5KSXFTisP0SsGZzXoFOiTJ3TpywNCk_HC5ieSP5PVYJMPD7Xrj-MHVtOIHjlkutHbWi6VsdBzffbtYEoeSwFylahRCSYVUDmi_Dlih1h6SiWDnVCiS59ghAe7Z2xyDJSGQahvae4cqiH93iNUMHcMn9c_TeFKklsCxkfPKa0ACwDTJ_wW3e56OklZ2p3ljff_CVonTbg"/>
-                        <div className="absolute inset-0 cinematic-overlay opacity-100 bg-gradient-to-t from-[#000000cc] via-[#00000066] to-transparent transition-opacity duration-500 flex flex-col justify-end p-12">
-                            <span className="always-white font-bold tracking-widest text-[10px] mb-2 uppercase shadow-black drop-shadow-md" style={{ color: '#ffffff' }}>Neural Core</span>
-                            <h4 className="always-white text-4xl font-black tracking-tighter fix-clipping drop-shadow-lg" style={{ color: '#ffffff' }}>AGENCY EVOLVED</h4>
-                        </div>
+                    <div className="flex gap-8 pr-8 flex-shrink-0" aria-hidden="true">
+                        {CAROUSEL_ITEMS.map((item, idx) => (
+                            <div key={`set2-${idx}`} className="min-w-[350px] md:min-w-[900px] h-[600px] relative group overflow-hidden flex-shrink-0">
+                                <img alt={item.tag} className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" src={item.img} />
+                                <div className="absolute inset-0 cinematic-overlay opacity-100 bg-gradient-to-t from-[#000000cc] via-[#00000066] to-transparent transition-opacity duration-500 flex flex-col justify-end p-12">
+                                    <span className="always-white font-bold tracking-widest text-[10px] mb-2 uppercase shadow-black drop-shadow-md" style={{ color: '#ffffff' }}>{item.tag}</span>
+                                    <h4 className="always-white text-4xl font-black tracking-tighter fix-clipping drop-shadow-lg" style={{ color: '#ffffff' }}>{item.title}</h4>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>
