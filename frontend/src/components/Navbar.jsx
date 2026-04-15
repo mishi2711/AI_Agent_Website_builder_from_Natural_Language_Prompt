@@ -29,7 +29,7 @@ function Navbar() {
                             alt="Nirmana Logo" 
                             className="h-8 w-auto object-contain hover:scale-110 transition-transform duration-500" 
                             id="theme-logo" 
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCG_H7eNItb5KOc8q7JoDIoExovh1LJT4d88h5m_9uuOoSjs7TH5sRVN5zueZaI4MzckfBYvD_iO49IzPWJ2aOI-oLIyoABS9Sbb1fzOlEzkMD1vYCI5I2P-9HuPxjMnGpCTaS4G056AyXTNbQM28WVgGwvIqkD5ifLP39aHQ_giRVEwNbIUpHmdx5489vEkRV-GyleQpY_w3xHnoLr-OZ2smOYM60ypJb80lWm4r_pzDnlGHQfhQxZ4e3vUVTAv-sathi05bP5ak0"
+                            src={isLightMode ? "https://i.postimg.cc/T3KpRws9/Light_Logo.png" : "https://i.postimg.cc/8z7j15Yw/Dark_Logo.png"}
                         />
                     </Link>
                 </div>

@@ -8,10 +8,16 @@ function Footer() {
                 <div className="col-span-2 md:col-span-1">
                     <div className="flex items-center mb-10">
                         <img 
-                            alt="Nirmana Logo" 
-                            className="h-8 w-auto object-contain mr-4" 
-                            id="footer-logo" 
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuB36kk29BehR7JRhXjUSrUauYSWtoyZztwedhqDAaEhraf5bG1A5IX2hTJFlVKJXY1pKCLTgVKuWKDn_PWVbrEU5PRkCjkXf212r4j1vuH3Lj7eDLn6TP660W11_QsnrN_fj3E8Mpe-AIHeNV2pkaYO7MPTARsUWxHG9H3IrWhAdndyGMF2WmyKI5dStI1CRXVdtbYZptCw8aI169lbTm3vQUSp22XMcT7dBAMBSab3tEm3zeUe7BI_XQ3Xhk8FanSPTJC_TGWw4Rc"
+                            alt="Nirmana Logo Dark" 
+                            className="h-8 w-auto object-contain mr-4 hidden dark:block" 
+                            id="footer-logo-dark" 
+                            src="https://i.postimg.cc/8z7j15Yw/Dark_Logo.png"
+                        />
+                        <img 
+                            alt="Nirmana Logo Light" 
+                            className="h-8 w-auto object-contain mr-4 block dark:hidden" 
+                            id="footer-logo-light" 
+                            src="https://i.postimg.cc/T3KpRws9/Light_Logo.png"
                         />
                         <span className="text-lg font-bold text-[#e5e2e1] uppercase italic fix-clipping">NIRMANA</span>
                     </div>
