@@ -11,13 +11,13 @@ function Footer() {
                             alt="Nirmana Logo" 
                             className="h-8 w-auto object-contain mr-4" 
                             id="footer-logo" 
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuB36kk29BehR7JRhXjUSrUauYSWtoyZztwedhqDAaEhraf5bG1A5IX2hTJFlVKJXY1pKCLTgVKuWKDn_PWVbrEU5PRkCjkXf212r4j1vuH3Lj7eDLn6TP660W11_QsnrN_fj3E8Mpe-AIHeNV2pkaYO7MPTARsUWxHG9H3IrWhAdndyGMF2WmyKI5dStI1CRXVdtbYZptCw8aI169lbTm3vQUSp22XMcT7dBAMBSab3tEm3zeUe7BI_XQ3Xhk8FanSPTJC_TGWw4Rc"
+                            src="https://i.postimg.cc/8z7j15Yw/Dark_Logo.png"
                         />
-                        <span className="text-lg font-bold text-[#e5e2e1] uppercase italic fix-clipping">NIRMANA</span>
+                        <div className="text-lg font-bold text-[#e5e2e1] uppercase italic fix-clipping">NIRMANA</div>
                     </div>
-                    <p className="text-[#e5e2e1]/50 text-xs uppercase tracking-widest leading-loose max-w-sm">
+                    <div className="text-[#e5e2e1]/50 text-xs uppercase tracking-widest leading-loose max-w-sm">
                         Pioneering collective intelligence for cinematic digital experiences. The future is built by agents.
-                    </p>
+                    </div>
                 </div>
                 <div>
                     <h5 className="text-[#adc6ff] font-bold text-[10px] mb-8 uppercase tracking-[0.4em] heading-glow">Platform</h5>

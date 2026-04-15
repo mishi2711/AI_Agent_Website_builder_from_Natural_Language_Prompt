@@ -1157,4 +1157,6 @@ a:hover {
 }
 .light .auth-page-wrapper .placeholder\:text-gray-600::placeholder { color: #64748b !important; }
 .light .auth-page-wrapper .text-primary { color: #2563eb !important; }
-.light .auth-page-wrapper .decoration-primary\/20 { text-decoration-color: rgba(37, 99, 235, 0.6) !important; }
+.light .auth-page-wrapper .decoration-primary\/20 { text-decoration-color: rgba(37, 99, 235, 0.6) !important; }
+/* Ensured white text */
+.light .always-white, .light .always-white > * { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
