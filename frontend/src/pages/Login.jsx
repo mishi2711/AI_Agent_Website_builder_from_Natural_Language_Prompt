@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 function Login() {
+    const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
 
     return (
@@ -25,7 +26,11 @@ function Login() {
                 
                 {/* Glass Card */}
                 <div className="glass-card rounded-xl p-8 shadow-2xl relative overflow-hidden">
-                    <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); alert("Login intent captured!"); }}>
+                    <form className="space-y-6" onSubmit={(e) => { 
+                        e.preventDefault(); 
+                        localStorage.setItem('isAuthenticated', 'true');
+                        navigate('/dashboard'); 
+                    }}>
                         {/* Email Field */}
                         <div className="space-y-1.5 text-left">
                             <label className="font-label text-[0.6875rem] uppercase tracking-widest text-on-surface-variant ml-1" htmlFor="email">Email Identity</label>

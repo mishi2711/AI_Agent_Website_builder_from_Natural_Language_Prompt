@@ -1,0 +1,98 @@
+/* Dashboard.css */
+/* Base Overrides scoped to .dashboard-page */
+.dashboard-page {
+    background-color: #131315;
+    color: #e5e1e4;
+    font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark .dashboard-page {
+    background-color: #131315;
+    color: #e5e1e4;
+}
+
+html:not(.dark) .dashboard-page {
+    background-color: #f8fafc;
+    color: #0f172a;
+}
+
+/* Glass Card */
+.dashboard-page .glass-card {
+    background: rgba(53, 52, 55, 0.4);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+html:not(.dark) .dashboard-page .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+/* Custom Effects */
+.dashboard-page .cinematic-shadow { box-shadow: 0px 20px 40px rgba(173, 198, 255, 0.05); }
+.dashboard-page .glow-primary { box-shadow: 0 0 15px rgba(173, 198, 255, 0.4); }
+
+.dashboard-page .font-manrope { font-family: 'Manrope', sans-serif; }
+
+/* Light Mode Overrides */
+html:not(.dark) .dashboard-page .text-on-surface-variant { color: #475569; }
+html:not(.dark) .dashboard-page .text-primary { color: #1d4ed8; }
+html:not(.dark) .dashboard-page .bg-primary\/10 { background-color: rgba(29, 78, 216, 0.1); }
+html:not(.dark) .dashboard-page .text-secondary { color: #7e22ce; }
+html:not(.dark) .dashboard-page .bg-secondary\/10 { background-color: rgba(126, 34, 206, 0.1); }
+html:not(.dark) .dashboard-page .text-tertiary { color: #a16207; }
+html:not(.dark) .dashboard-page .bg-tertiary\/10 { background-color: rgba(161, 98, 7, 0.1); }
+
+html:not(.dark) .dashboard-page .bg-surface-container-low { background-color: #f1f5f9; }
+html:not(.dark) .dashboard-page .bg-surface-container-lowest { background-color: #ffffff; }
+
+html:not(.dark) .dashboard-page aside { background-color: #f8fafc !important; border-right: 1px solid #e2e8f0; }
+html:not(.dark) .dashboard-page header { background-color: rgba(255, 255, 255, 0.8) !important; border-bottom: 1px solid #e2e8f0; }
+
+html:not(.dark) .dashboard-page .bg-gradient-to-b.from-white.to-white\/60 { background-image: linear-gradient(to bottom, #0f172a, #334155); }
+
+/* Ensure specific items remain dark even in light mode */
+html:not(.dark) .dashboard-page .keep-dark-context { background: #131315 !important; color: #ffffff !important; }
+html:not(.dark) .dashboard-page .keep-dark-context h3 { color: #ffffff !important; }
+html:not(.dark) .dashboard-page .keep-dark-context .text-on-surface-variant { color: rgba(255, 255, 255, 0.6) !important; }
+
+/* Scrollbar */
+.dashboard-page ::-webkit-scrollbar { width: 6px; }
+.dashboard-page ::-webkit-scrollbar-track { background: transparent; }
+.dashboard-page ::-webkit-scrollbar-thumb { background: rgba(173, 198, 255, 0.2); border-radius: 10px; }
+
+/* Prevent global nav and footer rules from polluting the transparent dashboard layout */
+.dashboard-page nav, 
+.dashboard-page footer {
+    background-color: transparent !important;
+}
+
+.light .dashboard-page nav, 
+.light .dashboard-page footer {
+    background-color: transparent !important;
+}
+
+/* Make inactive sidebar icons and text a bit darker in light mode so they are crisper on the background */
+html:not(.dark) .dashboard-page aside nav a.text-slate-500 {
+    color: #475569 !important; /* Tailwind slate-600 */
+}
+
+html:not(.dark) .dashboard-page aside nav a.text-slate-500 .material-symbols-outlined {
+    color: #334155 !important; /* Tailwind slate-700 for extra icon crispness */
+}
+
+/* Active Dashboard icon darkness in light mode */
+html:not(.dark) .dashboard-page aside nav a.text-primary .material-symbols-outlined {
+    color: #1e293b !important; /* Dark Slate 800 - almost black */
+}
+
+/* Search bar text and icon in light mode */
+html:not(.dark) .dashboard-page header input {
+    color: #000000 !important; /* Pure black text */
+}
+
+html:not(.dark) .dashboard-page header .material-symbols-outlined.text-slate-400 {
+    color: #334155 !important; /* Darker slate for the search icon */
+}
