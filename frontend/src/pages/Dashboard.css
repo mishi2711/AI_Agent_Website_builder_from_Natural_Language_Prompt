@@ -73,3 +73,26 @@ html:not(.dark) .dashboard-page .keep-dark-context .text-on-surface-variant { co
 .light .dashboard-page footer {
     background-color: transparent !important;
 }
+
+/* Make inactive sidebar icons and text a bit darker in light mode so they are crisper on the background */
+html:not(.dark) .dashboard-page aside nav a.text-slate-500 {
+    color: #475569 !important; /* Tailwind slate-600 */
+}
+
+html:not(.dark) .dashboard-page aside nav a.text-slate-500 .material-symbols-outlined {
+    color: #334155 !important; /* Tailwind slate-700 for extra icon crispness */
+}
+
+/* Active Dashboard icon darkness in light mode */
+html:not(.dark) .dashboard-page aside nav a.text-primary .material-symbols-outlined {
+    color: #1e293b !important; /* Dark Slate 800 - almost black */
+}
+
+/* Search bar text and icon in light mode */
+html:not(.dark) .dashboard-page header input {
+    color: #000000 !important; /* Pure black text */
+}
+
+html:not(.dark) .dashboard-page header .material-symbols-outlined.text-slate-400 {
+    color: #334155 !important; /* Darker slate for the search icon */
+}

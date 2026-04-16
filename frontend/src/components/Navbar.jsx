@@ -1,9 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 function Navbar() {
     const location = useLocation();
+    const navigate = useNavigate();
     const [isLightMode, setIsLightMode] = useState(false);
+
+    const handleDashboardClick = (e) => {
+        e.preventDefault();
+        if (localStorage.getItem('isAuthenticated') === 'true') {
+            navigate('/dashboard');
+        } else {
+            navigate('/login');
+        }
+    };
 
     useEffect(() => {
         // Apply theme classes to the html element
@@ -35,12 +45,12 @@ function Navbar() {
                 </div>
                 
                 <div className="hidden md:flex items-center space-x-12 absolute left-1/2 -translate-x-1/2 font-headline tracking-tighter">
-                    <Link 
-                        className={`font-bold text-[11px] uppercase tracking-tight transition-all duration-500 ${location.pathname === '/dashboard' ? 'text-[#adc6ff] border-b border-[#adc6ff]/50 pb-1' : 'text-[#e5e2e1]/70 hover:text-[#adc6ff]'}`} 
-                        to="/dashboard"
+                    <a 
+                        className={`font-bold text-[11px] uppercase tracking-tight transition-all duration-500 cursor-pointer ${location.pathname === '/dashboard' ? 'text-[#adc6ff] border-b border-[#adc6ff]/50 pb-1' : 'text-[#e5e2e1]/70 hover:text-[#adc6ff]'}`} 
+                        onClick={handleDashboardClick}
                     >
                         Dashboard
-                    </Link>
+                    </a>
                     <Link 
                         className="text-[#e5e2e1]/70 hover:text-[#adc6ff] transition-all duration-500 font-bold text-[11px] uppercase tracking-tight" 
                         to="#"
@@ -77,11 +87,11 @@ function Navbar() {
                             </button>
                         </Link>
                     </div>
-                    <Link to="/dashboard">
+                    <a onClick={handleDashboardClick} className="cursor-pointer">
                         <button className="bg-white text-black px-8 py-3 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-[#adc6ff] transition-all duration-500 shadow-[0_20px_50px_rgba(173,198,255,0.05)] scale-95 active:scale-90">
                             Start Building
                         </button>
-                    </Link>
+                    </a>
                 </div>
             </div>
         </nav>
