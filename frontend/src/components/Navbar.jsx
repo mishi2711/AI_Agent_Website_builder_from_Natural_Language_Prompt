@@ -88,17 +88,21 @@ function Navbar() {
 
                     {currentUser ? (
                         <div className="flex items-center space-x-3">
-                            <span className="text-[#e5e2e1]/60 font-body text-[11px] hidden md:block">
+                            <span
+                                className="navbar-username font-body text-[11px] hidden md:block"
+                                style={{ color: 'rgba(255,255,255,0.85)', WebkitTextFillColor: 'rgba(255,255,255,0.85)' }}
+                            >
                                 {currentUser.displayName || currentUser.email}
                             </span>
                             <button
                                 onClick={handleLogout}
-                                className="text-[#e5e2e1] px-4 py-3 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-white/5 transition-all duration-500 active:scale-95"
+                                className="navbar-logout-btn px-4 py-3 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-white/15 transition-all duration-500 active:scale-95"
+                                style={{ color: 'white' }}
                             >
                                 Log Out
                             </button>
                             <a onClick={handleDashboardClick} className="cursor-pointer">
-                                <button className="bg-white text-black px-8 py-3 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-[#adc6ff] transition-all duration-500 shadow-[0_20px_50px_rgba(173,198,255,0.05)] scale-95 active:scale-90">
+                                <button className="bg-white text-black px-8 py-3 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-[#adc6ff] hover:scale-105 transition-all duration-500 shadow-md scale-95 active:scale-90 border border-white/30">
                                     Dashboard
                                 </button>
                             </a>
