@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { auth } from '../firebase/firebaseConfig';
 
-const API_BASE = 'http://127.0.0.1:5001';
+// Vite uses import.meta.env for environment variables.
+// It will fallback to localhost if the variable doesn't exist.
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:5001';
 export const SERVER_URL = API_BASE;
 
 const api = axios.create({
