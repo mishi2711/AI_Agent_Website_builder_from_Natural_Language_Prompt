@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 function Navbar() {
     const location = useLocation();
     const navigate = useNavigate();
     const [isLightMode, setIsLightMode] = useState(false);
+    const { currentUser, logout } = useAuth();
 
     const handleDashboardClick = (e) => {
         e.preventDefault();
@@ -15,8 +17,16 @@ function Navbar() {
         }
     };
 
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate('/');
+        } catch (err) {
+            console.error('Logout failed:', err);
+        }
+    };
+
     useEffect(() => {
-        // Apply theme classes to the html element
         if (isLightMode) {
             document.documentElement.classList.add('light');
             document.documentElement.classList.remove('dark');
@@ -35,39 +45,39 @@ function Navbar() {
             <div className="flex justify-between items-center px-8 py-4 max-w-[1440px] mx-auto">
                 <div className="flex items-center">
                     <Link to="/">
-                        <img 
-                            alt="Nirmana Logo" 
-                            className="h-8 w-auto object-contain hover:scale-110 transition-transform duration-500" 
-                            id="theme-logo" 
+                        <img
+                            alt="Nirmana Logo"
+                            className="h-8 w-auto object-contain hover:scale-110 transition-transform duration-500"
+                            id="theme-logo"
                             src={isLightMode ? "https://i.postimg.cc/T3KpRws9/Light_Logo.png" : "https://i.postimg.cc/8z7j15Yw/Dark_Logo.png"}
                         />
                     </Link>
                 </div>
-                
+
                 <div className="hidden md:flex items-center space-x-12 absolute left-1/2 -translate-x-1/2 font-headline tracking-tighter">
-                    <a 
-                        className={`font-bold text-[11px] uppercase tracking-tight transition-all duration-500 cursor-pointer ${location.pathname === '/dashboard' ? 'text-[#adc6ff] border-b border-[#adc6ff]/50 pb-1' : 'text-[#e5e2e1]/70 hover:text-[#adc6ff]'}`} 
+                    <a
+                        className={`font-bold text-[11px] uppercase tracking-tight transition-all duration-500 cursor-pointer ${location.pathname === '/dashboard' ? 'text-[#adc6ff] border-b border-[#adc6ff]/50 pb-1' : 'text-[#e5e2e1]/70 hover:text-[#adc6ff]'}`}
                         onClick={handleDashboardClick}
                     >
                         Dashboard
                     </a>
-                    <Link 
-                        className="text-[#e5e2e1]/70 hover:text-[#adc6ff] transition-all duration-500 font-bold text-[11px] uppercase tracking-tight" 
+                    <Link
+                        className="text-[#e5e2e1]/70 hover:text-[#adc6ff] transition-all duration-500 font-bold text-[11px] uppercase tracking-tight"
                         to="#"
                     >
                         Gallery
                     </Link>
-                    <Link 
-                        className="text-[#e5e2e1]/70 hover:text-[#adc6ff] transition-all duration-500 font-bold text-[11px] uppercase tracking-tight" 
+                    <Link
+                        className="text-[#e5e2e1]/70 hover:text-[#adc6ff] transition-all duration-500 font-bold text-[11px] uppercase tracking-tight"
                         to="#"
                     >
                         Pricing
                     </Link>
                 </div>
-                
+
                 <div className="flex items-center space-x-6">
-                    <button 
-                        className="text-[#e5e2e1]/70 hover:text-[#adc6ff] transition-all duration-500 flex items-center justify-center p-2 rounded-full hover:bg-white/5 active:scale-90" 
+                    <button
+                        className="text-[#e5e2e1]/70 hover:text-[#adc6ff] transition-all duration-500 flex items-center justify-center p-2 rounded-full hover:bg-white/5 active:scale-90"
                         id="theme-toggle"
                         onClick={toggleTheme}
                     >
