@@ -1,12 +1,12 @@
 import { getProject, getAllProjects, createProject } from '../services/projectService.js';
-import { getCommits, revertToCommit } from '../services/gitService.js';
+import { getCommits, revertToCommit, commitChanges } from '../services/gitService.js';
 import mongoose from 'mongoose';
 import { listFiles, readFileContent, writeFiles } from '../utils/fileUtils.js';
 import { startDevServer, stopDevServer, getDevServerStatus } from '../services/devServerService.js';
 import Commit from '../models/Commit.js';
 import Message from '../models/Message.js';
 import User from '../models/User.js';
-import { logEmitter, getLogBuffer } from '../utils/logger.js';
+import { logEmitter, getLogBuffer, emitLog } from '../utils/logger.js';
 
 /**
  * POST /projects/create
@@ -135,7 +135,28 @@ export const handleUpdateFileContent = async (req, res, next) => {
         const { content } = req.body;
         
         await writeFiles(project.repoPath, [{ path: filePath, content }]);
-        res.json({ success: true, path: filePath });
+        
+        // Log to SSE stream so Frontend instantly triggers a refresh via our auto-sync logic
+        emitLog(project._id, 'info', `Committing manual edits to ${filePath}...`);
+
+        // Generate the Git commit dynamically
+        const commitHash = await commitChanges(project.repoPath, `Manual edit: ${filePath}`);
+
+        // Persist to MongoDB for history UI rendering
+        await Commit.create({
+            projectId: project._id,
+            commitHash,
+            prompt: `Manual Code Edit`,
+        });
+
+        await Message.create({
+            projectId: project._id,
+            commitHash,
+            role: 'assistant',
+            content: `✏️ Manually edited \`${filePath}\` utilizing the onboard code editor. Changes committed instantly.`
+        });
+
+        res.json({ success: true, path: filePath, commitHash });
     } catch (error) {
         next(error);
     }

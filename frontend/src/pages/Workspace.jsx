@@ -253,9 +253,10 @@ function Workspace() {
                 if (logData.message.includes('Writing ')) {
                     getFiles(projectId).then(res => setFiles(res.data)).catch(console.error);
                 }
-                // Auto-refresh commits when committed
+                // Auto-refresh commits and sync chat history when committed
                 if (logData.message.includes('Committing ')) {
                     getCommits(projectId).then(res => setCommits(res.data)).catch(console.error);
+                    getMessages(projectId).then(res => setMessages(res.data)).catch(console.error);
                 }
             } catch (err) {
                 console.error("Error parsing log:", err);
@@ -816,7 +817,7 @@ function Workspace() {
                                     serverLogs.map((log, i) => (
                                         <p key={i} className="mb-2.5 leading-relaxed">
                                             <span className="text-slate-600">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
-                                            <span className={`ml-2 ${log.level === 'error' ? 'text-red-400' : 'text-[#d8e2ff]/70'}`}>
+                                            <span className={`ml-2 ${log.level === 'error' ? 'text-red-500' : (isDark ? 'text-[#d8e2ff]/70' : 'text-slate-800')}`}>
                                                 {log.message}
                                             </span>
                                         </p>
