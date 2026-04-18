@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth } from '../firebase/firebaseConfig.js';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
-const API_BASE = 'http://127.0.0.1:5000';
+import { SERVER_URL } from '../api/api.js';
 
 const AuthContext = createContext();
 
@@ -27,7 +27,9 @@ export function AuthProvider({ children }) {
             if (user) {
                 try {
                     const idToken = await user.getIdToken();
-                    await fetch(`${API_BASE}/users/sync`, {
+                    // Using SERVER_URL instead of hardcoded 127.0.0.1:5000
+                    const ipFixedUrl = SERVER_URL.replace('127.0.0.1', 'localhost');
+                    await fetch(`${ipFixedUrl}/users/sync`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

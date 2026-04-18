@@ -12,6 +12,7 @@ import {
     getServerStatus,
     getFileContent,
     updateFileContent,
+    SERVER_URL
 } from '../api/api';
 
 // ─── Inline Styles ──────────────────────────────────────────────────────────
@@ -171,6 +172,7 @@ function Workspace() {
     const [files, setFiles] = useState([]);
     const [commits, setCommits] = useState([]);
     const [messages, setMessages] = useState([{ role: 'assistant', content: 'How can I help you architect your next module?' }]);
+    const [serverLogs, setServerLogs] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isReverting, setIsReverting] = useState(false);
     const [previewPort, setPreviewPort] = useState(null);
@@ -221,6 +223,37 @@ function Workspace() {
         checkServerStatus();
     }, [fetchProjectData]);
 
+    // ── Server-Sent Events (Logs) ───────────────────────────────────────────────
+    useEffect(() => {
+        if (!projectId) return;
+
+        const url = SERVER_URL.replace('127.0.0.1', 'localhost');
+        const eventSource = new EventSource(`${url}/projects/${projectId}/logs`);
+
+        eventSource.onmessage = (event) => {
+            try {
+                const logData = JSON.parse(event.data);
+                // Keep only the latest 100 logs
+                setServerLogs(prev => [...prev.slice(-99), logData]);
+                
+                // Auto-refresh file tree when files are written
+                if (logData.message.includes('Writing ')) {
+                    getFiles(projectId).then(res => setFiles(res.data)).catch(console.error);
+                }
+                // Auto-refresh commits when committed
+                if (logData.message.includes('Committing ')) {
+                    getCommits(projectId).then(res => setCommits(res.data)).catch(console.error);
+                }
+            } catch (err) {
+                console.error("Error parsing log:", err);
+            }
+        };
+
+        return () => {
+            eventSource.close();
+        };
+    }, [projectId]);
+
     useEffect(() => {
         if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }, [messages]);
@@ -257,8 +290,9 @@ function Workspace() {
         setIsLoading(true);
         try {
             const { data } = await sendPrompt(projectId, text);
-            const reply = `✅ Generated ${data.modifiedFiles.length} file(s):\n${data.modifiedFiles.map(f => `• ${f}`).join('\n')}`;
-            setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+            // Connect AI backend response to the frontend UI
+            setMessages(prev => [...prev, { role: 'assistant', content: data.message || `✅ Successfully processed: "${text}"` }]);
+            
             const [filesRes, commitsRes] = await Promise.all([getFiles(projectId), getCommits(projectId)]);
             setFiles(filesRes.data);
             setCommits(commitsRes.data);
@@ -567,29 +601,27 @@ function Workspace() {
                                             <div className="flex-1 text-center text-[10px] text-slate-500 font-mono tracking-wide">
                                                 {previewPort ? `http://localhost:${previewPort}` : 'localhost:3000/render-view'}
                                             </div>
-                                            <div className="w-16" />
+                                            <div className="flex justify-end min-w-[80px]">
+                                                {previewPort && (
+                                                    <button
+                                                        className="flex items-center gap-1.5 px-3 py-1 rounded bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-[9px] font-bold tracking-widest transition-all text-red-400"
+                                                        onClick={handleStopServer}
+                                                    >
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+                                                        STOP
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
 
                                         {/* Viewport */}
                                         <div className="flex-1 flex flex-col bg-gradient-to-b from-[#131315] to-[#0E0E10] relative overflow-hidden">
                                             {previewPort ? (
-                                                <>
-                                                    <iframe
-                                                        className="w-full h-full border-none"
-                                                        src={`http://localhost:${previewPort}`}
-                                                        title="Project Preview"
-                                                    />
-                                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-                                                        <button
-                                                            className="flex items-center gap-3 px-8 py-2 rounded-full text-[10px] font-bold tracking-widest transition-all ws-server-running text-white"
-                                                            style={{ fontFamily: 'Manrope' }}
-                                                            onClick={handleStopServer}
-                                                        >
-                                                            <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                                                            STOP SERVER
-                                                        </button>
-                                                    </div>
-                                                </>
+                                                <iframe
+                                                    className="w-full h-full border-none bg-white"
+                                                    src={`http://localhost:${previewPort}`}
+                                                    title="Project Preview"
+                                                />
                                             ) : (
                                                 <div className="flex-1 flex flex-col items-center justify-center space-y-8">
                                                     <div className="w-24 h-24 bg-gradient-to-tr from-[#d8e2ff] to-[#e9b3ff] rounded-3xl rotate-12 flex items-center justify-center shadow-[0_0_40px_rgba(173,198,255,0.3)]">
@@ -762,12 +794,18 @@ function Workspace() {
                         {/* Logs Panel */}
                         {rightTab === 'logs' && (
                             <div className="flex-1 p-4 font-mono text-[10px] text-slate-500 overflow-y-auto ws-scrollbar space-y-1">
-                                <p>[{new Date().toLocaleTimeString()}] Render engine initialized...</p>
-                                <p>[{new Date().toLocaleTimeString()}] Connection established</p>
-                                <p>[{new Date().toLocaleTimeString()}] Syncing local files to architecture...</p>
-                                {messages.filter(m => m.role === 'assistant').slice(-5).map((m, i) => (
-                                    <p key={i} className="text-[#d8e2ff]/40">[AI] {m.content.substring(0, 80)}...</p>
-                                ))}
+                                {serverLogs.length === 0 ? (
+                                    <p className="text-center text-slate-600 mt-8">Waiting for engine logs...</p>
+                                ) : (
+                                    serverLogs.map((log, i) => (
+                                        <p key={i} className="mb-2.5 leading-relaxed">
+                                            <span className="text-slate-600">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
+                                            <span className={`ml-2 ${log.level === 'error' ? 'text-red-400' : 'text-[#d8e2ff]/70'}`}>
+                                                {log.message}
+                                            </span>
+                                        </p>
+                                    ))
+                                )}
                             </div>
                         )}
                     </aside>

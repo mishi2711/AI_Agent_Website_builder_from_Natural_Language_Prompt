@@ -7,12 +7,12 @@ import { getAuth } from "firebase/auth";
 // Go to Firebase Console -> nirmana-46 -> Project Settings -> Web App
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
+  apiKey: "AIzaSyBKDP_aW0PgX4UmAwvEnrqdYse8wTN0G8s",
+  authDomain: "nirmana-46.firebaseapp.com",
   projectId: "nirmana-46",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  storageBucket: "nirmana-46.firebasestorage.app",
+  messagingSenderId: "36642397309",
+  appId: "1:36642397309:web:e5a862538035e4862f6514"
 };
 
 // Initialize Firebase only if keys are present

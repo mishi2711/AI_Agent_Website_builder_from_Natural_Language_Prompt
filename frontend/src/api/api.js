@@ -8,6 +8,7 @@ export const SERVER_URL = API_BASE;
 
 const api = axios.create({
     baseURL: API_BASE,
+    timeout: 300000, // 5 minute timeout for long LangGraph processes
     headers: { 'Content-Type': 'application/json' },
 });
 
