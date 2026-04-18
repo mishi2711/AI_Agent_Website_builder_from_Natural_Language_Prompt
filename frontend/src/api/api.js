@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { auth } from '../firebase/firebaseConfig';
 
-// Vite uses import.meta.env for environment variables.
-// It will fallback to localhost if the variable doesn't exist.
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:5001';
+// Vite evaluates import.meta.env.PROD during the Vercel build to safely map out environments
+const BUILD_URL = import.meta.env.PROD ? 'https://nirmana-backend.onrender.com' : 'http://127.0.0.1:5001';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || BUILD_URL;
 export const SERVER_URL = API_BASE;
 
 const api = axios.create({

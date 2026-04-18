@@ -23,7 +23,8 @@ app.use(cors({
     origin: [
         'http://localhost:3000', 
         'http://127.0.0.1:3000',
-        process.env.FRONTEND_URL // Will be injected by Render.com in production
+        'https://ai-agent-website-builder-from-natur.vercel.app',
+        process.env.FRONTEND_URL // Fallback injected by Render.com if provided
     ].filter(Boolean),
     credentials: true,
 }));
