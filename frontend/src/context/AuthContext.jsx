@@ -15,6 +15,11 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!auth) {
+            setLoading(false);
+            return () => {};
+        }
+
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             setCurrentUser(user);
 
@@ -44,7 +49,9 @@ export function AuthProvider({ children }) {
         return unsubscribe;
     }, []);
 
-    const logout = () => signOut(auth);
+    const logout = () => {
+        if (auth) return signOut(auth);
+    };
 
     const value = {
         currentUser,

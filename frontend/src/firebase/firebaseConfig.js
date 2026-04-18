@@ -15,8 +15,20 @@ const firebaseConfig = {
   appId: "YOUR_APP_ID"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase only if keys are present
+let app;
+let authInstance = null;
 
-// Initialize Firebase Authentication and get a reference to the service
-export const auth = getAuth(app);
+try {
+    if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+        app = initializeApp(firebaseConfig);
+        authInstance = getAuth(app);
+    } else {
+        console.warn("⚠️ Firebase config is missing. The frontend will load, but Authentication will not run until you add your keys.");
+    }
+} catch (error) {
+    console.error("Firebase initialization error:", error);
+}
+
+export const auth = authInstance;
+
