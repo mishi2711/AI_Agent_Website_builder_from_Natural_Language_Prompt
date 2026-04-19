@@ -232,36 +232,41 @@ function Workspace() {
             let token = '';
             if (currentUser) {
                 try {
-                    token = await currentUser.getIdToken();
+                    // Force a non-stale refresh token via the Firebase parameter (fixes the 1-hour expiry loop)
+                    token = await currentUser.getIdToken(true);
                 } catch (e) {}
             }
             const url = SERVER_URL.replace('127.0.0.1', 'localhost');
+            
+            // Re-render hygiene map
+            if (eventSource) eventSource.close();
             eventSource = new EventSource(`${url}/projects/${projectId}/logs?token=${token}`);
 
             eventSource.onmessage = (event) => {
-            try {
-                const logData = JSON.parse(event.data);
-                // Clean ANSI characters natively from node processes
-                if (logData.message) {
-                    logData.message = logData.message.replace(/\x1B\[[0-9;]*[mK]/g, '').trim();
+                try {
+                    const logData = JSON.parse(event.data);
+                    if (logData.message) {
+                        logData.message = logData.message.replace(/\x1B\[[0-9;]*[mK]/g, '').trim();
+                    }
+                    setServerLogs(prev => [...prev.slice(-99), logData]);
+                    
+                    if (logData.message.includes('Writing ')) {
+                        getFiles(projectId).then(res => setFiles(res.data)).catch(console.error);
+                    }
+                    if (logData.message.includes('Committing ')) {
+                        getCommits(projectId).then(res => setCommits(res.data)).catch(console.error);
+                        getMessages(projectId).then(res => setMessages(res.data)).catch(console.error);
+                    }
+                } catch (err) {
+                    console.error("Error parsing log:", err);
                 }
-                
-                // Keep only the latest 100 logs
-                setServerLogs(prev => [...prev.slice(-99), logData]);
-                
-                // Auto-refresh file tree when files are written
-                if (logData.message.includes('Writing ')) {
-                    getFiles(projectId).then(res => setFiles(res.data)).catch(console.error);
-                }
-                // Auto-refresh commits and sync chat history when committed
-                if (logData.message.includes('Committing ')) {
-                    getCommits(projectId).then(res => setCommits(res.data)).catch(console.error);
-                    getMessages(projectId).then(res => setMessages(res.data)).catch(console.error);
-                }
-            } catch (err) {
-                console.error("Error parsing log:", err);
-            }
-        };
+            };
+
+            // Catch backend token expiry kicks so we can natively heal the socket using a fresh Firebase generation
+            eventSource.onerror = () => {
+                eventSource.close();
+                setTimeout(initSSE, 5000); 
+            };
         }; // Close initSSE
 
         initSSE();
