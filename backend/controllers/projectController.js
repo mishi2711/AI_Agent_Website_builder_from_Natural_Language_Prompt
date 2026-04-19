@@ -158,8 +158,8 @@ export const handleUpdateFileContent = async (req, res, next) => {
             content: `✏️ Manually edited \`${filePath}\` utilizing the onboard code editor. Changes committed instantly.`
         });
 
-        // Backup this newly mutated local snapshot up to Firebase!
-        await uploadProjectToCloud(project._id);
+        // Backup this newly mutated local snapshot up to AWS S3!
+        uploadProjectToCloud(project._id).catch(console.error);
 
         res.json({ success: true, path: filePath, commitHash });
     } catch (error) {
@@ -199,8 +199,8 @@ export const handleRevert = async (req, res, next) => {
             content: `🔄 Successfully reverted the project workspace to earlier checkpoint (\`${commitHash.substring(0, 6)}\`). All future generations will branch from this state.`
         });
 
-        // Backup this newly reversed local snapshot codebase up to Firebase!
-        await uploadProjectToCloud(project._id);
+        // Backup this newly reversed local snapshot codebase up to AWS S3!
+        uploadProjectToCloud(project._id).catch(console.error);
 
         // Load all historical messages to preserve conversation memory
         const messages = await Message.find({

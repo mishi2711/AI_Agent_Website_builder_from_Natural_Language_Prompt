@@ -30,11 +30,12 @@ export const plannerAgent = async (state) => {
 3. Keep the plan brief but actionable.
 4. Assume the project uses React with Vite. All component files go in the src/ directory.
 5. CSS REQUIREMENT: If a component requires styling, you MUST explicitly plan to create the corresponding CSS file (e.g., src/components/Navbar.css) alongside it.
-6. BANNED LIBRARIES: You may ONLY plan for standard React features and 'react-router-dom', or 'axios'. DO NOT plan for external UI libraries (like MUI, Tailwind, Bootstrap), icons (like lucide-react, react-icons), animations (framer-motion), or carousels (react-slick). You MUST use vanilla CSS and standard HTML elements to build features from scratch.
+6. DEPENDENCIES: Only rely on standard React features. If you rigorously require an external library (like react-router-dom, lucide-react, framer-motion, or axios), explicitly plan to update or overwrite package.json to append those dependencies. DO NOT over-install unnecessary packages.
 7. IMAGES: Plan to use placeholder URLs like https://images.unsplash.com/photo-XXX or https://via.placeholder.com/XXX. Do NOT assume any local image files exist.
 8. APP ARCHITECTURE: If you plan to add a layout (like a Navbar and a Footer), explicitly state that they should mount inside src/App.jsx.
 9. MODERN DESIGN: Default to planning modern flexbox/grid layouts. Plan for generous padding, rounded corners, and subtle box-shadows.
 10. RESPONSIVE DESIGN: Explicitly mention writing media queries to handle mobile and desktop views in your planned CSS files.
+11. CONVERSATIONAL QUERIES: If the user simply asks a general question ("how does this work?") without requesting a code modification, your plan should explicitly state "Explain Only" with no file changes planned.
 </RULES>`,
         },
         {

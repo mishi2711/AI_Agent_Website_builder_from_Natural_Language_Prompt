@@ -2,108 +2,149 @@ import fs from 'fs-extra';
 import archiver from 'archiver';
 import extract from 'extract-zip';
 import path from 'path';
-import admin from '../config/firebaseAdmin.js';
+import os from 'os';
+import { pipeline } from 'stream/promises';
+import { createWriteStream } from 'fs';
+import {
+    S3Client,
+    PutObjectCommand,
+    GetObjectCommand,
+    HeadObjectCommand,
+} from '@aws-sdk/client-s3';
 import { getProjectsDir } from './projectService.js';
-import { emitLog } from '../utils/logger.js';
 
+// Initialized lazily inside functions to ensure process.env is populated by dotenv first
+let _s3Client = null;
+const getS3Client = () => {
+    if (!_s3Client) {
+        _s3Client = new S3Client({ 
+            region: process.env.AWS_REGION || 'us-east-1',
+            credentials: {
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+            }
+        });
+    }
+    return _s3Client;
+};
+
+const getBucket = () => process.env.AWS_S3_BUCKET_NAME;
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+/** Zip a local directory, excluding node_modules */
+const zipDirectory = (sourceDir, zipPath) =>
+    new Promise((resolve, reject) => {
+        const output = fs.createWriteStream(zipPath);
+        const archive = archiver('zip', { zlib: { level: 9 } });
+
+        output.on('close', resolve);
+        archive.on('error', reject);
+        archive.pipe(output);
+
+        archive.glob('**/*', { cwd: sourceDir, ignore: ['node_modules/**'] });
+        archive.glob('.git/**/*', { cwd: sourceDir });
+        archive.glob('.gitignore', { cwd: sourceDir });
+
+        archive.finalize();
+    });
+
+// ── Public API ─────────────────────────────────────────────────────────────────
+
+/**
+ * Compress a project directory and upload it to AWS S3.
+ * Called after every AI generation, file save, or revert.
+ */
 export const uploadProjectToCloud = async (projectId) => {
+    const BUCKET = getBucket();
+    const s3 = getS3Client();
+
+    if (!BUCKET) {
+        console.warn('[S3] AWS_S3_BUCKET_NAME not set — skipping cloud backup.');
+        return;
+    }
+
     const repoPath = path.join(getProjectsDir(), projectId.toString());
-    const zipPath = `${repoPath}.zip`;
+    // Use a unique temp path per invocation to prevent race conditions when
+    // multiple uploads fire concurrently (e.g. project create + AI prompt)
+    const zipPath  = path.join(os.tmpdir(), `nirmana-${projectId}-${Date.now()}.zip`);
+    const s3Key    = `projects/${projectId}.zip`;
 
-    console.log(`[Storage] Zipping project ${projectId} for Cloud Storage...`);
-
-    // Verify local repo actually exists
     if (!(await fs.pathExists(repoPath))) {
-        console.warn(`[Storage] Warning: Cannot zip ${projectId}, directory does not exist locally.`);
+        console.warn(`[S3] Directory not found for project ${projectId} — skipping upload.`);
         return;
     }
 
     try {
-        // Zip the directory natively to a temporary .zip file on disk
-        await new Promise((resolve, reject) => {
-            const output = fs.createWriteStream(zipPath);
-            const archive = archiver('zip', { zlib: { level: 9 } });
+        console.log(`[S3] Zipping project ${projectId}...`);
+        await zipDirectory(repoPath, zipPath);
 
-            output.on('close', resolve);
-            archive.on('error', reject);
+        const fileBuffer = await fs.readFile(zipPath);
 
-            archive.pipe(output);
+        console.log(`[S3] Uploading ${s3Key} to bucket "${BUCKET}"...`);
+        await s3.send(new PutObjectCommand({
+            Bucket:      BUCKET,
+            Key:         s3Key,
+            Body:        fileBuffer,
+            ContentType: 'application/zip',
+        }));
 
-            // Zip the whole folder EXCEPT node_modules to preserve bandwidth
-            archive.glob('**/*', {
-                cwd: repoPath,
-                ignore: ['node_modules/**']
-            });
-
-            // Also explicitly zip hidden files like .git
-            archive.glob('.git/**/*', { cwd: repoPath });
-            archive.glob('.gitignore', { cwd: repoPath });
-
-            archive.finalize();
-        });
-
-        // Upload the physical .zip to Firebase Storage Bucket
-        const bucket = admin.storage().bucket();
-        const destination = `projects/${projectId}.zip`;
-
-        console.log(`[Storage] Uploading ${projectId}.zip to Firebase Cloud...`);
-        await bucket.upload(zipPath, {
-            destination: destination,
-            metadata: { contentType: 'application/zip' }
-        });
-
-        // Clean up the local zip to save disk space
         await fs.remove(zipPath);
-        console.log(`[Storage] Successfully uploaded ${projectId} to Cloud.`);
-
-    } catch (error) {
-        console.error(`[Storage] Failure uploading project ${projectId}:`, error);
-        // Clean up corrupted incomplete zip if generated
+        console.log(`[S3] Successfully uploaded project ${projectId}.`);
+    } catch (err) {
+        console.error(`[S3] Upload failed for project ${projectId}:`, err.message);
         if (await fs.pathExists(zipPath)) await fs.remove(zipPath);
     }
 };
 
+/**
+ * Download and extract a project from S3 back onto the ephemeral disk.
+ * Called by getProject() when the local directory is missing (Render restart).
+ */
 export const downloadProjectFromCloud = async (projectId) => {
-    const repoPath = path.join(getProjectsDir(), projectId.toString());
-    const zipPath = `${repoPath}.zip`;
-    const bucket = admin.storage().bucket();
-    const sourceFilePath = `projects/${projectId}.zip`;
+    const BUCKET = getBucket();
+    const s3 = getS3Client();
 
-    console.log(`[Storage] Checking if Cloud backup for ${projectId} exists...`);
-    const file = bucket.file(sourceFilePath);
-    const [exists] = await file.exists();
-
-    if (!exists) {
-        console.log(`[Storage] No cloud backup found for ${projectId}. Assuming new or local-only project.`);
+    if (!BUCKET) {
+        console.warn('[S3] AWS_S3_BUCKET_NAME not set — cannot restore from cloud.');
         return false;
     }
 
-    console.log(`[Storage] Downloading backup ${projectId}.zip from Cloud...`);
-    try {
-        // Prepare target directories
-        await fs.ensureDir(getProjectsDir());
-        
-        // Download zip
-        await file.download({ destination: zipPath });
+    const repoPath = path.join(getProjectsDir(), projectId.toString());
+    const zipPath  = `${repoPath}.zip`;
+    const s3Key    = `projects/${projectId}.zip`;
 
-        console.log(`[Storage] Extracting backup into ${repoPath}...`);
-        
-        // We purge the destination first so we have a completely clean state to prevent phantom file collisions
-        if (await fs.pathExists(repoPath)) {
-            await fs.remove(repoPath);
+    console.log(`[S3] Checking if backup exists for project ${projectId}...`);
+
+    try {
+        // Check existence without downloading the whole file
+        await s3.send(new HeadObjectCommand({ Bucket: BUCKET, Key: s3Key }));
+    } catch (err) {
+        if (err.name === 'NotFound' || err.$metadata?.httpStatusCode === 404) {
+            console.log(`[S3] No backup found for project ${projectId}.`);
+            return false;
         }
+        throw err;
+    }
+
+    console.log(`[S3] Downloading backup for project ${projectId}...`);
+    try {
+        await fs.ensureDir(getProjectsDir());
+
+        const { Body } = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: s3Key }));
+        await pipeline(Body, createWriteStream(zipPath));
+
+        // Wipe stale directory to avoid phantom file collisions
+        if (await fs.pathExists(repoPath)) await fs.remove(repoPath);
         await fs.ensureDir(repoPath);
 
-        // Decompress the zip dynamically over the directory
         await extract(zipPath, { dir: path.resolve(repoPath) });
-
-        // Cleanup downloaded zip archive
         await fs.remove(zipPath);
-        
-        console.log(`[Storage] Successfully rehydrated project ${projectId} from Cloud!`);
+
+        console.log(`[S3] Successfully rehydrated project ${projectId} from S3.`);
         return true;
-    } catch (error) {
-        console.error(`[Storage] Critical failure downloading project ${projectId}:`, error);
+    } catch (err) {
+        console.error(`[S3] Download/extract failed for project ${projectId}:`, err.message);
         if (await fs.pathExists(zipPath)) await fs.remove(zipPath);
         return false;
     }

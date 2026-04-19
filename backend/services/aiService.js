@@ -8,6 +8,9 @@ import { emitLog } from '../utils/logger.js';
 import { uploadProjectToCloud } from './storageService.js';
 import fs from 'fs-extra';
 import path from 'path';
+import { exec } from 'child_process';
+import util from 'util';
+const execAsync = util.promisify(exec);
 
 /**
  * Process an AI prompt for a project:
@@ -78,6 +81,19 @@ export const processPrompt = async (projectId, prompt) => {
         // Write files to the project directory
         writtenFiles = await writeFiles(repoPath, files);
 
+        // Detect if dependencies changed directly via AI rewriting package.json!
+        if (writtenFiles.some((f) => f.includes('package.json'))) {
+            emitLog(projectId, 'info', 'Detected dependencies update in package.json. Installing via npm...');
+            try {
+                // Background execute npm install gracefully in the generated folder
+                await execAsync('npm install', { cwd: repoPath });
+                emitLog(projectId, 'info', '✨ Dependencies successfully installed!');
+            } catch (err) {
+                emitLog(projectId, 'error', `⚠️ Warning: Failed to install packages natively: ${err.message}`);
+                console.error('NPM Install Error:', err);
+            }
+        }
+
         emitLog(projectId, 'info', 'Committing changes to git history');
 
         // Commit changes
@@ -115,8 +131,8 @@ export const processPrompt = async (projectId, prompt) => {
         content: finalAssistantContent,
     });
 
-    emitLog(projectId, 'info', `Safely backing up AI generation payload upward to Firebase Storage...`);
-    await uploadProjectToCloud(project._id);
+    emitLog(projectId, 'info', `Safely backing up AI generation payload upward to AWS S3 in the background...`);
+    uploadProjectToCloud(project._id).catch(console.error);
 
     return {
         commitHash,

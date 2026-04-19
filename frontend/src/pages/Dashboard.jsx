@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getProjects, createProject } from '../api/api';
 import { useAuth } from '../context/AuthContext';
 import './Dashboard.css';
+import Loader from '../components/Loader';
 
 function Dashboard() {
     const navigate = useNavigate();
@@ -85,25 +86,7 @@ function Dashboard() {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="fixed inset-0 flex flex-col items-center justify-center min-h-screen w-full" style={{background: '#0d0d12'}}>
-                {/* Ambient glow */}
-                <div style={{position:'absolute', width:400, height:400, borderRadius:'50%', background:'radial-gradient(circle, rgba(173,198,255,0.08) 0%, transparent 70%)', top:'50%', left:'50%', transform:'translate(-50%,-60%)', filter:'blur(40px)', pointerEvents:'none'}} />
-                {/* Logo */}
-                <div style={{marginBottom:32, display:'flex', alignItems:'center', gap:12}}>
-                    <div style={{width:36, height:36, borderRadius:10, overflow:'hidden', boxShadow:'0 0 20px rgba(173,198,255,0.3)'}}>
-                        <img src="/Logo.png" alt="Nirmana" style={{width:'100%', height:'100%', objectFit:'contain'}} />
-                    </div>
-                    <span style={{fontFamily:'Manrope, sans-serif', fontWeight:700, fontSize:18, letterSpacing:2, color:'rgba(255,255,255,0.9)', textTransform:'uppercase'}}>Nirmana</span>
-                </div>
-                {/* Spinner ring */}
-                <div style={{width:48, height:48, borderRadius:'50%', border:'2px solid rgba(173,198,255,0.15)', borderTopColor:'#adc6ff', animation:'spin 0.9s linear infinite', marginBottom:20}} />
-                {/* Label */}
-                <p style={{fontFamily:'Manrope, sans-serif', fontSize:11, letterSpacing:'0.25em', textTransform:'uppercase', color:'rgba(173,198,255,0.5)', fontWeight:600}}>Preparing Studio</p>
-            </div>
-        );
-    }
+    if (loading) return <Loader label="Dashboard" />;
 
     return (
         <div className="dashboard-page flex bg-background overflow-hidden relative min-h-[1024px] w-full">

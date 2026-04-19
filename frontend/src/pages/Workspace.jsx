@@ -14,6 +14,7 @@ import {
     updateFileContent,
     SERVER_URL
 } from '../api/api';
+import Loader from '../components/Loader';
 
 // ─── Inline Styles ──────────────────────────────────────────────────────────
 const styles = `
@@ -255,7 +256,9 @@ function Workspace() {
                     }
                     if (logData.message.includes('Committing ')) {
                         getCommits(projectId).then(res => setCommits(res.data)).catch(console.error);
-                        getMessages(projectId).then(res => setMessages(res.data)).catch(console.error);
+                        // NOTE: Do NOT fetch messages here — the SSE fires BEFORE MongoDB saves them,
+                        // which would wipe the optimistic user message from the UI.
+                        // Messages are synced from DB after sendPrompt() resolves instead.
                     }
                 } catch (err) {
                     console.error("Error parsing log:", err);
@@ -307,17 +310,23 @@ function Workspace() {
     const handleSendPrompt = async () => {
         const text = aiInput.trim();
         if (!text || isLoading) return;
+        // Optimistically add user message immediately so UI feels instant
         setMessages(prev => [...prev, { role: 'user', content: text }]);
         setAiInput('');
         setIsLoading(true);
         try {
             const { data } = await sendPrompt(projectId, text);
-            // Connect AI backend response to the frontend UI
-            setMessages(prev => [...prev, { role: 'assistant', content: data.message || `✅ Successfully processed: "${text}"` }]);
-            
-            const [filesRes, commitsRes] = await Promise.all([getFiles(projectId), getCommits(projectId)]);
+            // After the backend finishes, sync everything from DB (authoritative source)
+            // This ensures we get the real persisted messages, not just local optimistic state
+            const [filesRes, commitsRes, msgsRes] = await Promise.all([
+                getFiles(projectId),
+                getCommits(projectId),
+                getMessages(projectId),
+            ]);
             setFiles(filesRes.data);
             setCommits(commitsRes.data);
+            // Use DB messages as truth — they now contain both the user + assistant messages
+            if (msgsRes.data?.length > 0) setMessages(msgsRes.data);
         } catch (err) {
             const errorMsg = err.response?.data?.error || err.message;
             setMessages(prev => [...prev, { role: 'assistant', content: `❌ Error: ${errorMsg}` }]);
@@ -401,16 +410,50 @@ function Workspace() {
         ? allFiles.filter(f => f.name.toLowerCase().includes(fileSearch.toLowerCase()))
         : null;
 
-    if (!project) {
-        return (
-            <div className="fixed inset-0 bg-[#131315] flex items-center justify-center">
-                <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-[#d8e2ff] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                    <p className="text-xl font-bold text-white" style={{ fontFamily: 'Manrope' }}>Loading workspace...</p>
-                </div>
-            </div>
-        );
+    function buildFileTree(flatFiles) {
+        const root = [];
+        const map = {};
+        if (!Array.isArray(flatFiles)) return [];
+
+        flatFiles.forEach(f => {
+            const rawPath = f.path || f.name;
+            const parts = rawPath.split('/');
+            let currentLevel = root;
+            let currentPath = '';
+
+            for (let i = 0; i < parts.length; i++) {
+                currentPath = currentPath ? `${currentPath}/${parts[i]}` : parts[i];
+
+                if (!map[currentPath]) {
+                    const isLast = i === parts.length - 1;
+                    const node = {
+                        name: parts[i],
+                        path: currentPath,
+                        type: isLast && f.type === 'file' ? 'file' : 'directory',
+                        children: (isLast && f.type === 'file') ? undefined : [],
+                        fullPath: currentPath
+                    };
+                    map[currentPath] = node;
+                    currentLevel.push(node);
+                }
+
+                if (map[currentPath].type === 'directory') currentLevel = map[currentPath].children;
+            }
+        });
+
+        // Sort directories first
+        const sortNodes = (nodes) => {
+            nodes.sort((a, b) => {
+                if (a.type !== b.type) return a.type === 'directory' ? -1 : 1;
+                return a.name.localeCompare(b.name);
+            });
+            nodes.forEach(n => { if (n.children) sortNodes(n.children); });
+        };
+        sortNodes(root);
+        return root;
     }
+
+    if (!project) return <Loader label="Workspace" />;
 
     return (
         <>
@@ -421,14 +464,7 @@ function Workspace() {
             <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
             {/* ── Dashboard Overlay ─────────────────────────────────────────── */}
-            {overlayVisible && (
-                <div id="ws-dashboard-overlay" className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center">
-                    <div className="text-center">
-                        <div className="w-16 h-16 border-4 border-[#d8e2ff] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                        <p className="text-xl font-bold text-white" style={{ fontFamily: 'Manrope' }}>Returning to Dashboard...</p>
-                    </div>
-                </div>
-            )}
+            {overlayVisible && <Loader label="Dashboard" />}
 
             {/* ── Save Notification ─────────────────────────────────────────── */}
             <div className={`fixed top-20 right-6 z-50 pointer-events-none ws-save-notif ${showSaveNotif ? 'show' : ''}`}>
@@ -515,7 +551,9 @@ function Workspace() {
                                 </div>
                             </div>
                             <div>
-                                <p className="text-sm font-bold text-[#adc6ff]">{project?.name || 'Project'}</p>
+                                <p className="text-sm font-bold text-[#adc6ff]">
+                                    {currentUser?.displayName || currentUser?.email?.split('@')[0] || 'Creator'}
+                                </p>
                                 <p className="text-[10px] text-slate-500 uppercase tracking-widest">Ethereal Mode</p>
                             </div>
                         </div>
@@ -562,7 +600,7 @@ function Workspace() {
                                 </div>
                             ) : (
                                 <div className="space-y-1">
-                                    {Array.isArray(files) && files.map((node, i) => (
+                                    {buildFileTree(files).map((node, i) => (
                                         <FileNode key={i} node={node} depth={0}
                                             onFileClick={handleFileClick}
                                             openFolders={openFolders}
@@ -765,10 +803,15 @@ function Workspace() {
                                 <div className="p-4 border-t border-white/5">
                                     <div className="relative">
                                         <textarea
-                                            className="ws-ai-input w-full bg-[#0e0e10] border border-white/10 rounded-xl px-4 py-4 text-sm outline-none transition-all resize-none pr-12 text-[#e5e1e4] ws-scrollbar"
-                                            placeholder="Ask AI Architect..."
+                                            className={`ws-ai-input w-full bg-[#0e0e10] border rounded-xl px-4 py-4 text-sm outline-none transition-all resize-none pr-12 ws-scrollbar ${
+                                                isLoading
+                                                    ? 'border-[#adc6ff]/30 text-slate-600 cursor-not-allowed'
+                                                    : 'border-white/10 text-[#e5e1e4]'
+                                            }`}
+                                            placeholder={isLoading ? 'AI is thinking... please wait' : 'Ask AI Architect...'}
                                             rows={2}
                                             value={aiInput}
+                                            disabled={isLoading}
                                             onChange={e => setAiInput(e.target.value)}
                                             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendPrompt(); } }}
                                             style={{ fontFamily: 'Inter' }}
@@ -797,16 +840,14 @@ function Workspace() {
                                                 <p className="ws-commit-title text-sm font-bold text-[#d8e2ff]">{commit.message || 'Commit'}</p>
                                                 <p className="text-xs text-slate-500">{new Date(commit.date || commit.createdAt).toLocaleString()} • {commit.commitHash?.substring(0, 6)}</p>
                                             </div>
-                                            {i > 0 && (
-                                                <button
-                                                    className="ws-btn-revert px-3 py-1 bg-white/5 hover:bg-white/10 text-white rounded text-[10px] font-bold transition-colors"
-                                                    onClick={() => handleRevert(commit.commitHash)}
-                                                    disabled={isReverting}
-                                                    style={{ fontFamily: 'Manrope' }}
-                                                >
-                                                    {isReverting ? '...' : 'REVERT'}
-                                                </button>
-                                            )}
+                                            <button
+                                                className="ws-btn-revert px-3 py-1 bg-white/5 hover:bg-white/10 text-white rounded text-[10px] font-bold transition-colors"
+                                                onClick={() => handleRevert(commit.commitHash)}
+                                                disabled={isReverting}
+                                                style={{ fontFamily: 'Manrope' }}
+                                            >
+                                                {isReverting ? '...' : (i === 0 ? 'RESET' : 'REVERT')}
+                                            </button>
                                         </div>
                                     ))
                                 )}

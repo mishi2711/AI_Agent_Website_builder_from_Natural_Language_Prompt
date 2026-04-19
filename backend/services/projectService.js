@@ -44,8 +44,8 @@ export const createProject = async (name, framework = 'react', userId) => {
         prompt: 'Initial template setup',
     });
 
-    // Seed the blank blueprint up to Firebase Cloud natively
-    await uploadProjectToCloud(project._id);
+    // Seed the blank blueprint up to Firebase Cloud natively in the background
+    uploadProjectToCloud(project._id).catch(console.error);
 
     return {
         projectId: project._id,
