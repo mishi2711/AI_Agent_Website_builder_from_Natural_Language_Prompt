@@ -11,10 +11,22 @@ import userRoutes from './routes/userRoutes.js';
 
 // Load env from root .env file
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+if (process.env.NODE_ENV !== 'production' && !process.env.RENDER) {
+    dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+    dotenv.config();
+}
 
-// Also try local .env
-dotenv.config();
+// ─── Environment Validation ────────────────────────────────────────────────
+const isProduction = process.env.NODE_ENV === 'production' || !!process.env.RENDER;
+const REQUIRED_VARS = ['MONGO_URI', 'GEMINI_API_KEY'];
+const missingVars = REQUIRED_VARS.filter(v => !process.env[v]);
+
+if (missingVars.length > 0 && isProduction) {
+    console.error('\n❌ STARTUP ERROR: Missing required environment variables:');
+    missingVars.forEach(v => console.error(`   - ${v}`));
+    console.error('\nPlease add these to your Render Dashboard Environment Variables.\n');
+    process.exit(1);
+}
 
 const app = express();
 
