@@ -47,12 +47,11 @@ jobs:
         with:
           name: node-app
 
+      # ✅ FIXED Azure Login
       - name: Azure Login
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_2098C1C6D83B4C458449469F706C0549 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_F7585B511A6A4CFE8D43CB99500D7D10 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_2155433CD68D4F508452F40C3DAE56DB }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
