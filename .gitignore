@@ -7,3 +7,4 @@ node_modules/
 ai/node_modules
 .gitignore
 NirmanaServiceAccountKey.json
+projects/
