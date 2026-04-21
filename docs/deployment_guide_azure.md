@@ -47,7 +47,8 @@ We'll deploy the Express backend to a Linux App Service. This supports backgroun
 5. Under Build provider, let GitHub Actions build it. Azure will auto-generate a `.yaml` file in your repo.
    * *Important*: The GitHub action will deploy the whole repo to the App Service. Since `server.js` is inside the `backend/` folder, Azure needs to know how to start it.
 6. Go back to **Settings** > **Configuration** > **General settings**.
-7. Under **Startup Command**, type: `node server.js` (Since our new `.deployment` file moves Azure directly into the `backend` folder, the path is now local!).
+7. Under **Startup Command**, leave the box **EMPTY**.
+   * *Why?* Since I added a `package.json` at the root of the project, Azure's default startup command will now automatically find it and run the backend correctly!
 8. Save.
 
 ---

@@ -1,0 +1,16 @@
+{
+  "name": "ai-builder-root",
+  "version": "1.0.0",
+  "description": "Root proxy for Azure monorepo deployment",
+  "main": "backend/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node backend/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
