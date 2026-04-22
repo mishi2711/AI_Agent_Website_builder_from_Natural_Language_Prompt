@@ -9,12 +9,12 @@ export const handleSyncUser = async (req, res, next) => {
             return res.status(400).json({ error: 'Missing required user fields: email and name' });
         }
 
-        // Upsert: find existing user or create a new profile
-        let user = await User.findOne({ firebaseUid });
-
-        if (!user) {
-            user = await User.create({ firebaseUid, email, name });
-        }
+        // Upsert: atomical find existing user or create a new profile
+        const user = await User.findOneAndUpdate(
+            { firebaseUid },
+            { $set: { firebaseUid, email, name } },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
 
         res.status(200).json({ success: true, user });
     } catch (error) {
